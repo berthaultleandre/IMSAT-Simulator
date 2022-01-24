@@ -90,7 +90,7 @@ h.spn_attitudesequenceconditionname3=new_spinner(h.sp22,{},[0 0 100 20]);
 rightof(h.spn_attitudesequenceconditionname3,h.spn_attitudesequenceconditionoperator2,5);
 
 h.txt_attitudesequencelaw=new_text(h.sp22,'Law',[5 180 100 20]);
-h.spn_attitudesequencelaw=new_spinner(h.sp22,{'Nadir Pointing','Base Pointing'},[0 0 100 20]);
+h.spn_attitudesequencelaw=new_spinner(h.sp22,{'Nadir Pointing','Base Pointing','Solar Pointing'},[0 0 100 20]);
 rightof(h.spn_attitudesequencelaw,h.txt_attitudesequencelaw,5);
 
 h.btn_attitudesequencemoveelementup=new_button(h.sp22,'Up',[0 0 40 20]);

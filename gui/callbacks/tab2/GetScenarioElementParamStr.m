@@ -3,6 +3,8 @@ function param_str=GetScenarioElementParamStr(law_name,param)
         param_str=param.Base;
     elseif strcmp(law_name,'Nadir Pointing')
         param_str='None';
+    elseif strcmp(law_name,'Solar Pointing')
+        param_str='None';
     end
 end
 

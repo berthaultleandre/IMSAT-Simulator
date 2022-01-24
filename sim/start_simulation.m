@@ -242,6 +242,8 @@ for t=t_data'
         Rob_chap=point_base(base,center,Rio,t);
     elseif strcmp(element.Law,'Nadir Pointing')
         Rob_chap=point_nadir(center,Rio);
+    elseif strcmp(element.Law,'Solar Pointing')
+        Rob_chap=point_sun(center,Rio,t);
     end
     
     %Compute new attitude reference

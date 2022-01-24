@@ -3,6 +3,7 @@ function SetGeneralTabUpdateState(updated,h)
         if strcmp(h.btn_updategeneralconfig.Enable,'off')
             h.btn_creategeneralconfig.BackgroundColor='red';
         else
+            h.btn_creategeneralconfig.BackgroundColor=[0.94 0.94 0.94];
             h.btn_updategeneralconfig.BackgroundColor='red';
         end
     else

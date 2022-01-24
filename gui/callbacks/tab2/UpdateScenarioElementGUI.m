@@ -15,6 +15,8 @@ function h=UpdateScenarioElementGUI(law_name,h,ha,param)
         h.scenarioelementgui=containers.Map;
         h.scenarioelementgui('txt_scenarioelementbase')=txt_scenarioelementbase;
         h.scenarioelementgui('spn_scenarioelementbase')=spn_scenarioelementbase;
+    elseif strcmp(law_name,'Solar Pointing')
+        return;
     end
 end
 

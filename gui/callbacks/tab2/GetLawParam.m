@@ -18,6 +18,8 @@ function param=GetLawParam(law_name,h,default)
         end
     elseif strcmp(law_name,'Nadir Pointing')
         param=struct([]);
+    elseif strcmp(law_name,'Solar Pointing')
+        param=struct([]);
     end
 end
 

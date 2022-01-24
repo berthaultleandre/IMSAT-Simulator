@@ -23,6 +23,7 @@ function UpdateScenarioElementDefinitionParameters(ha,src,row)
         ha.spn_attitudesequenceconditionoperator1.Value=find(strcmp(ha.spn_attitudesequenceconditionoperator1.String,operator1));
         ha.spn_attitudesequenceconditionoperator2.Value=find(strcmp(ha.spn_attitudesequenceconditionoperator1.String,operator2));
     end
+    ha.spn_attitudesequencelaw.Value=find(strcmp(ha.spn_attitudesequencelaw.String,law_name));
     h=UpdateScenarioElementDefinitionParametersAux(ha,src,law_name,parameters);
     guidata(src,h);
 end
