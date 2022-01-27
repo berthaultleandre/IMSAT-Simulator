@@ -1,4 +1,4 @@
-function txt = new_text(fig,text,pos)
-    txt=uicontrol(fig,'style','text','String',text,'Position',pos);
+function txt = new_text(parent,text)
+    txt=uicontrol(parent,'style','text','String',text);
 end
 

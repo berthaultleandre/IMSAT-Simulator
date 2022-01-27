@@ -1,5 +1,4 @@
-function [r_ijk, v_ijk] = orbital_elements_to_ECI(a ,e, i, big_omega, small_omega, f)
-global mu
+function [r_ijk, v_ijk] = orbital_elements_to_ECI(a ,e, i, big_omega, small_omega, f, mu)
 r_pqw = a*(1-e^2)/(1+e*cos(f))*[cos(f), sin(f), 0];
 v_pqw = sqrt(mu/(a*(1-e^2)))*[-sin(f), e+cos(f), 0];
 

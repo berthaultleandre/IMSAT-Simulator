@@ -1,4 +1,4 @@
-function spn = new_spinner(fig,values,pos)
-    spn=uicontrol(fig,'style','popup','Position',pos,'String',values);
+function spn = new_spinner(parent,values)
+    spn=uicontrol(parent,'style','popup','String',values);
 end
 

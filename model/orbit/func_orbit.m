@@ -1,6 +1,11 @@
-function dydt = func_orbit(t,y)
+function dydt = func_orbit(t,y,c)
 
-global mu J2 re_m rho Cd S
+mu=c.mu;
+J2=c.J2;
+re_m=c.re_m;
+rho=c.rho;
+Cd=c.Cd;
+S=c.S;
 
 r = norm(y(1:3));
 co=y(2)/sqrt(y(1)^2+y(2)^2);

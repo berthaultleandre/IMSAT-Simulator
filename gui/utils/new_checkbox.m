@@ -1,4 +1,4 @@
-function cbx = new_checkbox(fig,text,pos)
-    cbx = uicontrol(fig,'style','checkbox','String',text,'Position',pos);
+function cbx = new_checkbox(parent,text)
+    cbx = uicontrol(parent,'style','checkbox','String',text);
 end
 

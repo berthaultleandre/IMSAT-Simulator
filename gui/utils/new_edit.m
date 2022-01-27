@@ -1,4 +1,4 @@
-function ed = new_edit(fig,text,pos)
-    ed=uicontrol(fig,'style','edit','String',text,'Position',pos);
+function ed = new_edit(parent,text)
+    ed=uicontrol(parent,'style','edit','String',text);
 end
 

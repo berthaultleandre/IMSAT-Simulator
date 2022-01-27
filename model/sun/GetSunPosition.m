@@ -1,5 +1,4 @@
-function [x,y,z]=GetSunPosition(t)
-    global a_sun b_sun e_sun w_sun
+function [x,y,z]=GetSunPosition(t,a_sun,b_sun,e_sun,w_sun)
     incl=23.5*pi/180;%inclinaison de l'écliptique
     co=cos(incl);
     si=sin(incl);

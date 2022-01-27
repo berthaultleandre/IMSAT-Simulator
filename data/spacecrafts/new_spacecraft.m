@@ -1,5 +1,3 @@
-function new_spacecraft(name,dim,weight)
-    global all_spacecrafts
+function spacecraft=new_spacecraft(name,dim,weight)
     spacecraft=struct('name',name,'dim',dim,'m',weight);
-    all_spacecrafts(name)=spacecraft;
 end

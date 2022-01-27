@@ -1,4 +1,4 @@
-function b = new_button(fig,text,pos)
-    b = uicontrol(fig,'String',text,'Position',pos);
+function b = new_button(parent,text)
+    b = uicontrol(parent,'String',text);
 end
 
