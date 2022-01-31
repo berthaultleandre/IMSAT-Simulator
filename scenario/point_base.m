@@ -1,7 +1,7 @@
-function Rob_chap = point_base(base,center,Rio,t,w_e_deg)
-    [x_b,y_b,z_b]=base_position(base,t,0,w_e_deg);
+function Rob_chap = point_base(base,data,state)
+    [x_b,y_b,z_b]=base_position(base,state.t,0,data.constants.w_e_deg);
     base_xyz=[x_b;y_b;z_b];
     
-    Rob_chap = point(base_xyz,center,Rio);
+    Rob_chap = point(base_xyz,state.center,state.Rio);
 end
 

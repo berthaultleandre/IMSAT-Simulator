@@ -1,5 +1,5 @@
 function [x,y,z]=GetSunPosition(t,a_sun,b_sun,e_sun,w_sun)
-    incl=23.5*pi/180;%inclinaison de l'écliptique
+    incl=23.5*pi/180; %ecliptic inclination
     co=cos(incl);
     si=sin(incl);
     r_sun=a_sun^2/b_sun*(1-e_sun^2*cos(w_sun*t)^2)^(3/2);

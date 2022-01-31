@@ -1,6 +1,6 @@
-function Rob_chap = point_nadir(center,Rio)
+function Rob_chap = point_nadir(state)
     origin=[0;0;0];
-    Rob_chap=point(origin,center,Rio);
+    Rob_chap=point(origin,state.center,state.Rio);
 end
 
 

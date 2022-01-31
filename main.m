@@ -1,8 +1,7 @@
 function main()
-   
     %% Main
     
-    %warning('off','all')
+    warning('off','all')
     
     close all
     clear variables
@@ -36,7 +35,7 @@ function main()
             'Position',[0 0 1 1],...
             'outerposition',[0 0 1 1]);
         
-        % + File menu
+        % File menu
         gui.fileMenu = uimenu(gui.window, 'Label', 'File');
         uimenu(gui.fileMenu, 'Label', 'Exit', 'Callback', @OnExit);
         
@@ -290,7 +289,7 @@ function main()
             gui.layout201=uix.HBox('Parent', gui.layout20, 'Spacing', 20);
             
             gui.txt_attitudeconfig=new_text(gui.layout201,'Config');
-            gui.spn_attitudeconfig=new_spinner(gui.layout201,data.configs.general.keys);
+            gui.spn_attitudeconfig=new_spinner(gui.layout201,data.configs.attitude.keys);
        
             gui.layout2011=uix.HButtonBox('Parent', gui.layout201, 'Spacing', 20);
             
@@ -557,7 +556,7 @@ function main()
         end
     end
     function OnPressed_UpdateGeneralConfig(~,~)
-        name=gui.spn_generalconfig.String{gui.spn_generalconfig.Value};
+        name=spnstr(gui.spn_generalconfig);
         CreateOrUpdateGeneralConfig(name);
     end
     function OnChecked_SaveVideoCheckbox(src,~)
@@ -574,17 +573,17 @@ function main()
         SetGeneralTabUpdateState(false);
     end
     function OnPressed_DeleteGeneralConfig(~,~)
-        name=gui.spn_generalconfig.String{gui.spn_generalconfig.Value};
+        name=spnstr(gui.spn_generalconfig);
         DeleteGeneralConfig(name);
     end
-    function OnSelectedItem_ActuatorsSpinner(src,~)
+    function OnSelectedItem_ActuatorsSpinner(~,~)
         SetGeneralTabUpdateState(false);
-        name=gui.spn_actuators.String{gui.spn_actuators.Value};
-        UpdateActuatorsParameters(src,name,struct([]));
+        name=spnstr(gui.spn_actuators);
+        UpdateActuatorsParameters(name,struct([]));
     end
     function OnSelectedItem_Cond0Spinner(src,~)
         SetGeneralTabUpdateState(false);
-        name=src.String{src.Value};
+        name=spnstr(src);
         UpdateCond0Data(name);
     end
     function OnSelectedItem_GeneralConfigSpinner(~,~)
@@ -592,56 +591,53 @@ function main()
     end
     function OnSelectedItem_SpacecraftSpinner(src,~)
         SetGeneralTabUpdateState(false);
-        name=src.String{src.Value};
+        name=spnstr(src);
         UpdateSpacecraftData(name);
+    end
+    function OnSelectedItem_NumberOfWheelsSpinner(~,~)
+        SetGeneralTabUpdateState(false);
+        UpdateWheelsConfigurations();
     end
 
     % Tab 2
-    function OnPressed_AddAttitudeSequenceElementButton(src,event)
+    function OnPressed_AddAttitudeSequenceElementButton(~,~)
         global current_scenario
         SetAttitudeTabUpdateState(false);
-        condition_index1=gui.spn_attitudesequenceconditionname1.Value;
-        condition_name1=gui.spn_attitudesequenceconditionname1.String(condition_index1);
+        condition_name1=spnstr(gui.spn_attitudesequenceconditionname1);
         condition_name1=cast(condition_name1,'char');
 
-        condition_index2=gui.spn_attitudesequenceconditionname2.Value;
-        condition_name2=gui.spn_attitudesequenceconditionname2.String(condition_index2);
+        condition_name2=spnstr(gui.spn_attitudesequenceconditionname2);
         condition_name2=cast(condition_name2,'char');
 
-        condition_index3=gui.spn_attitudesequenceconditionname3.Value;
-        condition_name3=gui.spn_attitudesequenceconditionname3.String(condition_index3);
+        condition_name3=spnstr(gui.spn_attitudesequenceconditionname3);
         condition_name3=cast(condition_name3,'char');
 
-        operator_index1=gui.spn_attitudesequenceconditionoperator1.Value;
-        operator1=gui.spn_attitudesequenceconditionoperator1.String(operator_index1);
+        operator1=spnstr(gui.spn_attitudesequenceconditionoperator1);
 
-        operator_index2=gui.spn_attitudesequenceconditionoperator2.Value;
-        operator2=gui.spn_attitudesequenceconditionoperator2.String(operator_index2);
+        operator2=spnstr(gui.spn_attitudesequenceconditionoperator2);
 
-        condition=struct('Condition1',condition_name1,'Condition2',condition_name2,...
-            'Condition3',condition_name3,'Operator1',operator1,'Operator2',operator2);
+        condition=CreateScenarioElementCondition(condition_name1,operator1,condition_name2,operator2,condition_name3);
 
-        law_index=gui.spn_attitudesequencelaw.Value;
-        law_name=gui.spn_attitudesequencelaw.String(law_index);
+        law_name=spnstr(gui.spn_attitudesequencelaw);
         param=GetLawParam(law_name,false);
 
-        element=struct('Condition',condition,'Law',law_name,'Parameters',param);
+        element=CreateScenarioElement(condition,law_name,param);
         index=num2str(gui.spn_attitudesequencepriority.Value);
         current_scenario(index)=element;
 
         UpdateScenarioTable();
     end
-    function OnPressed_CreateAttitudeConfig(src,event)
+    function OnPressed_CreateAttitudeConfig(~,~)
         name=gui.ed_createattitudeconfig.String;
         if ~ismember(name,data.configs.attitude.keys)
             CreateOrUpdateAttitudeConfig(name);
         end
     end
-    function OnPressed_DeleteAttitudeConfig(src,event)
-        name=gui.spn_attitudeconfig.String{gui.spn_attitudeconfig.Value};
+    function OnPressed_DeleteAttitudeConfig(~,~)
+        name=spnstr(gui.spn_attitudeconfig);
         DeleteAttitudeConfig(name);
     end
-    function OnPressed_MoveAttitudeSequenceElementButton(src,event,dir)
+    function OnPressed_MoveAttitudeSequenceElementButton(~,~,dir)
         global current_scenario
         priority=gui.spn_attitudesequencepriority.Value;
         key=num2str(priority);
@@ -657,7 +653,7 @@ function main()
             UpdateScenarioTable();
         end
     end
-    function OnPressed_RemoveAttitudeSequenceElementButton(src,event)
+    function OnPressed_RemoveAttitudeSequenceElementButton(~,~)
         global current_scenario
         SetAttitudeTabUpdateState(false);
         priority=gui.spn_attitudesequencepriority.Value;
@@ -676,7 +672,7 @@ function main()
             gui.spn_attitudesequencepriority.Value=1;
         end
     end
-    function OnPressed_RemoveConditionDefinitionButton(src,event)
+    function OnPressed_RemoveConditionDefinitionButton(~,~)
         global current_conditions
         name=gui.ed_attitudeconditiondefinitionname.String;
         if isKey(current_conditions,name)
@@ -695,44 +691,44 @@ function main()
                 param=struct([]);
             end
 
-            UpdateConditionDefinitionParameters(gui.tbl_attitudeelementaryconditions,name,type,param);
+            UpdateConditionDefinitionParameters(name,type,param);
             UpdateElementaryConditions();
         end
     end
-    function OnPressed_UpdateAttitudeConfig(src,event)
-        name=gui.spn_attitudeconfig.String{gui.spn_attitudeconfig.Value};
+    function OnPressed_UpdateAttitudeConfig(~,~)
+        name=spnstr(gui.spn_attitudeconfig);
         CreateOrUpdateAttitudeConfig(name);
     end
-    function OnPressed_ValidateConditionDefinitionButton(src,event)
+    function OnPressed_ValidateConditionDefinitionButton(~,~)
         global current_conditions
         SetAttitudeTabUpdateState(false);
         ha=guidata(gui.tbl_attitudeelementaryconditions);
-        type=gui.spn_attitudeconditiondefinitiontype.String{gui.spn_attitudeconditiondefinitiontype.Value};
+        type=spnstr(gui.spn_attitudeconditiondefinitiontype);
         name=gui.ed_attitudeconditiondefinitionname.String;
-        [param,func]=GetConditionParam(type,ha);
-        new_condition=struct('Name',name,'Type',type,'Parameters',param,'Function',func);
+        param=GetConditionParam(type);
+        new_condition=CreateCondition(name,type,param);
         current_conditions(name)=new_condition;
         UpdateElementaryConditions();
     end
-    function OnSelectedItem_AttitudeConditionDefinitionTypeSpinner(src,event)
+    function OnSelectedItem_AttitudeConditionDefinitionTypeSpinner(~,~)
         name=gui.ed_attitudeconditiondefinitionname.String;
-        type=gui.spn_attitudeconditiondefinitiontype.String(gui.spn_attitudeconditiondefinitiontype.Value);
+        type=spnstr(gui.spn_attitudeconditiondefinitiontype);
         param=struct([]);
-        UpdateConditionDefinitionParameters(gui.tbl_attitudeelementaryconditions,name,type,param);
+        UpdateConditionDefinitionParameters(name,type,param);
     end
-    function OnSelectedItem_AttitudeConfigSpinner(src,event)
+    function OnSelectedItem_AttitudeConfigSpinner(~,~)
         UpdateTab2();
     end
-    function OnSelectedItem_AttitudeSequenceLawSpinner(src,event)
-        law_name=gui.spn_attitudesequencelaw.String(gui.spn_attitudesequencelaw.Value);
+    function OnSelectedItem_AttitudeSequenceLawSpinner(~,~)
+        law_name=spnstr(gui.spn_attitudesequencelaw);
         param=GetLawParam(law_name,true);
-        UpdateScenarioElementDefinitionParametersAux(src,law_name,param);
+        UpdateScenarioElementDefinitionParametersAux(law_name,param);
     end
-    function OnSelectedItem_AttitudeSequencePrioritySpinner(src,event)
+    function OnSelectedItem_AttitudeSequencePrioritySpinner(~,~)
         row=gui.spn_attitudesequencepriority.Value;
-        UpdateScenarioElementDefinitionParameters(gui.tbl_attitudesequence,row);
+        UpdateScenarioElementDefinitionParameters(row);
     end
-    function OnSelectedItem_ElementaryConditionsTable(src,event)
+    function OnSelectedItem_ElementaryConditionsTable(~,event)
         global current_conditions
         indices=event.Indices;
         if length(indices)==2
@@ -743,20 +739,19 @@ function main()
             name=condition.Name;
             type=condition.Type;
             param=condition.Parameters;
-            UpdateConditionDefinitionParameters(src,name,type,param);
+            UpdateConditionDefinitionParameters(name,type,param);
         end
     end
-    function OnSelectedItem_ScenarioTable(src,event)
+    function OnSelectedItem_ScenarioTable(~,event)
         indices=event.Indices;
         if length(indices)==2
             row=indices(1);
-            UpdateScenarioElementDefinitionParameters(src,row);
-            h2=guidata(src);
+            UpdateScenarioElementDefinitionParameters(row);
         end
     end
 
     % Tab 3
-    function OnPressed_StartSimulationButton(src,event)
+    function OnPressed_StartSimulationButton(~,~)
         if isfield(gui,'ax')
             cla(gui.ax);
             gui.ax.Title.String='';
@@ -770,7 +765,7 @@ function main()
     end
 
     % Tab 4
-    function OnPressed_PauseAnimationButton(src,event)
+    function OnPressed_PauseAnimationButton(src,~)
         if strcmpi(get(src, 'String'),'Resume')
             set(src, 'String', 'Pause');
             startTimer(true);
@@ -779,15 +774,13 @@ function main()
             pauseTimer();
         end
     end
-    function OnPressed_StopAnimationButton(src,event)
+    function OnPressed_StopAnimationButton(src,~)
         if strcmpi(get(src, 'String'),'Restart')
             set(src, 'String', 'Stop');
             StartAnimation();
         else
             set(src, 'String', 'Restart');
             stopTimer();
-            cla(gui.ax);
-            gui.ax.Title.String='';
             set(gui.btn_pause,'Enable','off'); 
         end
     end
@@ -797,6 +790,7 @@ function main()
     function SetGeneralTabUpdateState(updated)
         if ~updated
             if strcmp(gui.btn_updategeneralconfig.Enable,'off')
+                gui.btn_updategeneralconfig.BackgroundColor=[0.94 0.94 0.94];
                 gui.btn_creategeneralconfig.BackgroundColor='red';
             else
                 gui.btn_creategeneralconfig.BackgroundColor=[0.94 0.94 0.94];
@@ -804,47 +798,70 @@ function main()
             end
         else
             if strcmp(gui.btn_updategeneralconfig.Enable,'off')
+                gui.btn_updategeneralconfig.BackgroundColor=[0.94 0.94 0.94];
                 gui.btn_creategeneralconfig.BackgroundColor=[0.94 0.94 0.94];
             else
+                gui.btn_creategeneralconfig.BackgroundColor=[0.94 0.94 0.94];
                 gui.btn_updategeneralconfig.BackgroundColor=[0.94 0.94 0.94];
             end
         end
     end
-    function h=UpdateActuatorsGUI(name,param,h)
+    function UpdateActuatorsGUI(name,param)
         if strcmp(name,'Reaction wheels') || strcmp(name,'Mix')
             txt_numberofwheels=new_text(gui.layout1112,'Number of wheels');
             spn_numberofwheels=new_spinner(gui.layout1112,{3;4});
+            spn_numberofwheels.Callback={@OnSelectedItem_NumberOfWheelsSpinner};
             txt_wheelsconfig=new_text(gui.layout1112,'Wheels configuration');
             spn_wheelsconfig=new_spinner(gui.layout1112,data.wheels_configurations.keys);
+            spn_wheelsconfig.Callback={@OnEdited_GeneralTab};
             
             set(gui.layout1112,'Widths',[100 150 150 50 150 100]);
             
+            gui.actuatorsgui=containers.Map;
+            gui.actuatorsgui('txt_numberofwheels')=txt_numberofwheels;
+            gui.actuatorsgui('spn_numberofwheels')=spn_numberofwheels;
+            gui.actuatorsgui('txt_wheelsconfig')=txt_wheelsconfig;
+            gui.actuatorsgui('spn_wheelsconfig')=spn_wheelsconfig;
+            
             if ~isempty(param)
-                spn_numberofwheels.Value=find(strcmp(spn_numberofwheels.String,num2str(param.number_of_wheels)));
-                spn_wheelsconfig.Value=find(strcmp(spn_wheelsconfig.String,param.wheels_config));
+                number_of_wheels_str=num2str(param.number_of_wheels);
+                wheels_config_name=param.wheels_config;
+                strfnd(spn_numberofwheels,number_of_wheels_str);
+            end       
+            
+            UpdateWheelsConfigurations();
+            
+            if ~isempty(param)
+                spn_wheelsconfig.Value=find(strcmp(spn_wheelsconfig.String,wheels_config_name));
             end
-
-            spn_numberofwheels.Callback={@OnEdited_GeneralTab};
-            spn_wheelsconfig.Callback={@OnEdited_GeneralTab};
-
-            h.actuatorsgui=containers.Map;
-            h.actuatorsgui('txt_numberofwheels')=txt_numberofwheels;
-            h.actuatorsgui('spn_numberofwheels')=spn_numberofwheels;
-            h.actuatorsgui('txt_wheelsconfig')=txt_wheelsconfig;
-            h.actuatorsgui('spn_wheelsconfig')=spn_wheelsconfig;
         end
     end
-    function UpdateActuatorsParameters(src,name,param)
-        gui.spn_actuators.Value=find(strcmp(gui.spn_actuators.String,name));
-        h=guidata(src);
-         if isfield(h,'actuatorsgui')
-            keys=h.actuatorsgui.keys;
+    function UpdateWheelsConfigurations()
+        actuatorsgui=gui.actuatorsgui;
+        spn_numberofwheels=gui.actuatorsgui('spn_numberofwheels');
+        spn_wheelsconfig=gui.actuatorsgui('spn_wheelsconfig');
+        number_of_wheels=str2double(spnstr(spn_numberofwheels)); 
+        all_wheels_configs=data.wheels_configurations.values;
+        wheels_configs_names={};
+        j=1;
+        for i=1:length(all_wheels_configs)
+           if all_wheels_configs{i}.number_of_wheels == number_of_wheels
+               wheels_configs_names{j}=all_wheels_configs{i}.name;
+               j=j+1;
+           end
+        end
+        spn_wheelsconfig.String=wheels_configs_names; 
+    end
+    function UpdateActuatorsParameters(name,param)
+        strfnd(gui.spn_actuators,name);
+        %gui.spn_actuators.Value=find(strcmp(gui.spn_actuators.String,name));
+         if isfield(gui,'actuatorsgui')
+            keys=gui.actuatorsgui.keys;
             for i=1:length(keys)
-                delete(h.actuatorsgui(keys{i}));
+                delete(gui.actuatorsgui(keys{i}));
             end
         end
-        h=UpdateActuatorsGUI(name,param,h);
-        guidata(src,h);
+        UpdateActuatorsGUI(name,param);
     end
     function DeleteGeneralConfig(name)
         if ~strcmp(name, 'Default')
@@ -858,21 +875,20 @@ function main()
     end
     function config=GetGeneralConfigFromGUI(name)
         actuators=containers.Map;
-        actuators_name=gui.spn_actuators.String{gui.spn_actuators.Value};
+        actuators_name=spnstr(gui.spn_actuators);
         actuators('name')=actuators_name;
 
         if strcmp(actuators_name,'Reaction wheels') || strcmp(actuators_name,'Mix')
-            ha=guidata(gui.spn_actuators);
-            actuators('parameters')=struct('number_of_wheels',str2double(ha.actuatorsgui('spn_numberofwheels').String{ha.actuatorsgui('spn_numberofwheels').Value}),...
-                'wheels_config',ha.actuatorsgui('spn_wheelsconfig').String{ha.actuatorsgui('spn_wheelsconfig').Value});
+            actuators('parameters')=struct('number_of_wheels',str2double(spnstr(gui.actuatorsgui('spn_numberofwheels'))),...
+                'wheels_config',spnstr(gui.actuatorsgui('spn_wheelsconfig')));
         else
             actuators('parameters')=struct([]);
         end
 
         config=struct('name',name,...
-            'spacecraft_name',gui.spn_spacecraft.String{gui.spn_spacecraft.Value},...
+            'spacecraft_name',spnstr(gui.spn_spacecraft),...
             'actuators',actuators,...
-            'cond0_name',gui.spn_cond0.String{gui.spn_cond0.Value},...
+            'cond0_name',spnstr(gui.spn_cond0),...
             'attitude_wchap',[str2double(gui.ed_attitudewchapx.String);...
                               str2double(gui.ed_attitudewchapy.String);...
                               str2double(gui.ed_attitudewchapz.String)],...
@@ -923,7 +939,7 @@ function main()
             new_general_config=GetGeneralConfigFromGUI(name);
             data.configs.general(name)=new_general_config;
             gui.spn_generalconfig.String=data.configs.general.keys;
-            gui.spn_generalconfig.Value=find(strcmp(gui.spn_generalconfig.String,name));
+            strfnd(gui.spn_generalconfig,name);
             configs=data.configs.general;
             save('configs/general_configs.mat','configs');
             UpdateTab1();
@@ -944,7 +960,7 @@ function main()
             configs=data.configs.attitude;
             save('configs/attitude_configs.mat','configs');
             gui.spn_attitudeconfig.String=configs.keys;
-            gui.spn_attitudeconfig.Value=find(strcmp(gui.spn_attitudeconfig.String,name));
+            strfnd(gui.spn_attitudeconfig,name);
             UpdateTab2();
         end
     end
@@ -958,23 +974,20 @@ function main()
             UpdateTab2();
         end
     end
-    function [param,func]=GetConditionParam(type,h)
-        condition_gui=h.condition_gui;
+    function param=GetConditionParam(type)
+        conditiongui=gui.conditiongui;
         if strcmp(type,'Time')
-            startTime=str2double(condition_gui('ed_attitudeconditiontimestart').String);
-            endTime=str2double(condition_gui('ed_attitudeconditiontimeend').String);
+            startTime=str2double(conditiongui('ed_attitudeconditiontimestart').String);
+            endTime=str2double(conditiongui('ed_attitudeconditiontimeend').String);
             param=struct('StartTime',startTime,'EndTime',endTime);
-            func=@(t) (t>=startTime && t<endTime);
         elseif strcmp(type,'Latitude')
-            latitudeMin=str2double(condition_gui('ed_attitudeconditionlatitudemin').String);
-            latitudeMax=str2double(condition_gui('ed_attitudeconditionlatitudemax').String);
+            latitudeMin=str2double(conditiongui('ed_attitudeconditionlatitudemin').String);
+            latitudeMax=str2double(conditiongui('ed_attitudeconditionlatitudemax').String);
             param=struct('LatitudeMin',latitudeMin,'LatitudeMax',latitudeMax);
-            func=@(lat) (lat>=latitudeMin && lat<latitudeMax);
         elseif strcmp(type,'Longitude')
-            longitudeMin=str2double(condition_gui('ed_attitudeconditionlongitudemin').String);
-            longitudeMax=str2double(condition_gui('ed_attitudeconditionlongitudemax').String);
+            longitudeMin=str2double(conditiongui('ed_attitudeconditionlongitudemin').String);
+            longitudeMax=str2double(conditiongui('ed_attitudeconditionlongitudemax').String);
             param=struct('LongitudeMin',longitudeMin,'LongitudeMax',longitudeMax);
-            func=@(lon) (lon>=longitudeMin && lon<longitudeMax);
         end
     end
     function param_str=GetConditionParamStr(type,param)
@@ -997,7 +1010,7 @@ function main()
                 if isfield(ha,'scenarioelementgui')
                     scenarioelementgui=ha.scenarioelementgui;
                     spn=scenarioelementgui('spn_scenarioelementbase');
-                    base_name=spn.String(spn.Value);
+                    base_name=spnstr(spn);
                     param=struct('Base',base_name);
                 else
                     param=struct('Base',all_bases_name(1));
@@ -1021,6 +1034,7 @@ function main()
     function SetAttitudeTabUpdateState(updated)
         if ~updated
             if strcmp(gui.btn_updateattitudeconfig.Enable,'off')
+                gui.btn_updateattitudeconfig.BackgroundColor=[0.94 0.94 0.94];
                 gui.btn_createattitudeconfig.BackgroundColor='red';
             else
                 gui.btn_createattitudeconfig.BackgroundColor=[0.94 0.94 0.94];
@@ -1028,8 +1042,10 @@ function main()
             end
         else
             if strcmp(gui.btn_updateattitudeconfig.Enable,'off')
+                gui.btn_updateattitudeconfig.BackgroundColor=[0.94 0.94 0.94];
                 gui.btn_createattitudeconfig.BackgroundColor=[0.94 0.94 0.94];
             else
+                gui.btn_createattitudeconfig.BackgroundColor=[0.94 0.94 0.94];
                 gui.btn_updateattitudeconfig.BackgroundColor=[0.94 0.94 0.94];
             end
         end
@@ -1045,21 +1061,18 @@ function main()
         gui.spn_attitudesequenceconditionname3.String=keys;
         gui.spn_attitudesequenceconditionname3.Value=1;
     end
-    function UpdateConditionDefinitionParameters(src,name,type,param)
+    function UpdateConditionDefinitionParameters(name,type,param)
         gui.ed_attitudeconditiondefinitionname.String=name;
-        gui.spn_attitudeconditiondefinitiontype.Value=...
-            find(strcmp(gui.spn_attitudeconditiondefinitiontype.String,type));
-        h=guidata(src);
-        if isfield(h,'condition_gui')
-            keys=h.condition_gui.keys;
+        strfnd(gui.spn_attitudeconditiondefinitiontype,type);
+        if isfield(gui,'conditiongui')
+            keys=gui.conditiongui.keys;
             for i=1:length(keys)
-                delete(h.condition_gui(keys{i}));
+                delete(gui.conditiongui(keys{i}));
             end
         end
-        h=UpdateConditionGUI(type,param,h);
-        guidata(src,h);
+        UpdateConditionGUI(type,param);
     end
-    function h=UpdateConditionGUI(type,param,h)
+    function UpdateConditionGUI(type,param)
         if strcmp(type,'Time')
             
             hbox1=uix.HBox('Parent',gui.layout211211,'Spacing',3);
@@ -1083,13 +1096,13 @@ function main()
                 ed_attitudeconditiontimeend.String=num2str(param.EndTime);
             end
 
-            h.condition_gui=containers.Map;
-            h.condition_gui('hbox1')=hbox1;
-            h.condition_gui('hbox2')=hbox2;
-            h.condition_gui('txt_attitudeconditiontimestart')=txt_attitudeconditiontimestart;
-            h.condition_gui('ed_attitudeconditiontimestart')=ed_attitudeconditiontimestart;
-            h.condition_gui('txt_attitudeconditiontimeend')=txt_attitudeconditiontimeend;
-            h.condition_gui('ed_attitudeconditiontimeend')=ed_attitudeconditiontimeend;
+            gui.conditiongui=containers.Map;
+            gui.conditiongui('hbox1')=hbox1;
+            gui.conditiongui('hbox2')=hbox2;
+            gui.conditiongui('txt_attitudeconditiontimestart')=txt_attitudeconditiontimestart;
+            gui.conditiongui('ed_attitudeconditiontimestart')=ed_attitudeconditiontimestart;
+            gui.conditiongui('txt_attitudeconditiontimeend')=txt_attitudeconditiontimeend;
+            gui.conditiongui('ed_attitudeconditiontimeend')=ed_attitudeconditiontimeend;
         elseif strcmp(type,'Latitude')            
             
             hbox1=uix.HBox('Parent',gui.layout211211,'Spacing',3);
@@ -1113,13 +1126,13 @@ function main()
                 ed_attitudeconditionlatitudemax.String=num2str(param.LatitudeMax);
             end
 
-            h.condition_gui=containers.Map;
-            h.condition_gui('hbox1')=hbox1;
-            h.condition_gui('hbox2')=hbox2;
-            h.condition_gui('txt_attitudeconditionlatitudemin')=txt_attitudeconditionlatitudemin;
-            h.condition_gui('ed_attitudeconditionlatitudemin')=ed_attitudeconditionlatitudemin;
-            h.condition_gui('txt_attitudeconditionlatitudemax')=txt_attitudeconditionlatitudemax;
-            h.condition_gui('ed_attitudeconditionlatitudemax')=ed_attitudeconditionlatitudemax;
+            gui.conditiongui=containers.Map;
+            gui.conditiongui('hbox1')=hbox1;
+            gui.conditiongui('hbox2')=hbox2;
+            gui.conditiongui('txt_attitudeconditionlatitudemin')=txt_attitudeconditionlatitudemin;
+            gui.conditiongui('ed_attitudeconditionlatitudemin')=ed_attitudeconditionlatitudemin;
+            gui.conditiongui('txt_attitudeconditionlatitudemax')=txt_attitudeconditionlatitudemax;
+            gui.conditiongui('ed_attitudeconditionlatitudemax')=ed_attitudeconditionlatitudemax;
         elseif strcmp(type,'Longitude')
                         
             hbox1=uix.HBox('Parent',gui.layout211211,'Spacing',3);
@@ -1143,13 +1156,13 @@ function main()
                 ed_attitudeconditionlongitudemax.String=num2str(param.LongitudeMax);
             end
 
-            h.condition_gui=containers.Map;
-            h.condition_gui('hbox1')=hbox1;
-            h.condition_gui('hbox2')=hbox2;
-            h.condition_gui('txt_attitudeconditionlongitudemin')=txt_attitudeconditionlongitudemin;
-            h.condition_gui('ed_attitudeconditionlongitudemin')=ed_attitudeconditionlongitudemin;
-            h.condition_gui('txt_attitudeconditionlongitudemax')=txt_attitudeconditionlongitudemax;
-            h.condition_gui('ed_attitudeconditionlongitudemax')=ed_attitudeconditionlongitudemax;
+            gui.conditiongui=containers.Map;
+            gui.conditiongui('hbox1')=hbox1;
+            gui.conditiongui('hbox2')=hbox2;
+            gui.conditiongui('txt_attitudeconditionlongitudemin')=txt_attitudeconditionlongitudemin;
+            gui.conditiongui('ed_attitudeconditionlongitudemin')=ed_attitudeconditionlongitudemin;
+            gui.conditiongui('txt_attitudeconditionlongitudemax')=txt_attitudeconditionlongitudemax;
+            gui.conditiongui('ed_attitudeconditionlongitudemax')=ed_attitudeconditionlongitudemax;
         end
     end
     function UpdateElementaryConditions()
@@ -1172,7 +1185,7 @@ function main()
         gui.tbl_attitudeelementaryconditions.Data=newdata;
         UpdateAttitudeSequenceConditions();
     end
-    function UpdateScenarioElementDefinitionParameters(src,row) 
+    function UpdateScenarioElementDefinitionParameters(row) 
         global current_scenario
         if row>length(current_scenario)
             return;
@@ -1183,36 +1196,44 @@ function main()
         else
             line=int2str(row);
             element=current_scenario(line);
-            condition_name1=element.Condition.Condition1;
-            condition_name2=element.Condition.Condition2;
-            condition_name3=element.Condition.Condition3;
-            operator1=element.Condition.Operator1;
-            operator2=element.Condition.Operator2;
+            condition=element.Condition;
+            e1=isfield(condition,'Condition1');
+            e2=isfield(condition,'Condition2');
+            e3=isfield(condition,'Condition3');
+            if e1
+                condition_name1=element.Condition.Condition1;
+                strfnd(gui.spn_attitudesequenceconditionname1,condition_name1);
+            end
+            if e2
+                operator1=element.Condition.Operator1;
+                strfnd(gui.spn_attitudesequenceconditionoperator1,operator1);
+                condition_name2=element.Condition.Condition2;
+                strfnd(gui.spn_attitudesequenceconditionname2,condition_name2);
+            end
+            if e3
+                operator2=element.Condition.Operator2;
+                strfnd(gui.spn_attitudesequenceconditionoperator1,operator2);
+                condition_name3=element.Condition.Condition3;
+                strfnd(gui.spn_attitudesequenceconditionname3,condition_name3);
+            end
+            
             law_name=element.Law;
             parameters=element.Parameters;
             gui.spn_attitudesequencepriority.Value=row;
-            gui.spn_attitudesequenceconditionname1.Value=find(strcmp(gui.spn_attitudesequenceconditionname1.String,condition_name1));
-            gui.spn_attitudesequenceconditionname2.Value=find(strcmp(gui.spn_attitudesequenceconditionname2.String,condition_name2));
-            gui.spn_attitudesequenceconditionname3.Value=find(strcmp(gui.spn_attitudesequenceconditionname3.String,condition_name3));
-            gui.spn_attitudesequenceconditionoperator1.Value=find(strcmp(gui.spn_attitudesequenceconditionoperator1.String,operator1));
-            gui.spn_attitudesequenceconditionoperator2.Value=find(strcmp(gui.spn_attitudesequenceconditionoperator1.String,operator2));
         end
-        gui.spn_attitudesequencelaw.Value=find(strcmp(gui.spn_attitudesequencelaw.String,law_name));
-        h=UpdateScenarioElementDefinitionParametersAux(src,law_name,parameters);
-        guidata(src,h);
+        strfnd(gui.spn_attitudesequencelaw,law_name);
+        UpdateScenarioElementDefinitionParametersAux(law_name,parameters);
     end
-    function h=UpdateScenarioElementDefinitionParametersAux(src,law_name,param)
-        h=guidata(src);
-        if isfield(h,'scenarioelementgui')
-            keys=h.scenarioelementgui.keys;
+    function UpdateScenarioElementDefinitionParametersAux(law_name,param)
+        if isfield(gui,'scenarioelementgui')
+            keys=gui.scenarioelementgui.keys;
             for i=1:length(keys)
-                delete(h.scenarioelementgui(keys{i}));
+                delete(gui.scenarioelementgui(keys{i}));
             end
         end
-        h=UpdateScenarioElementGUI(law_name,h,param);
-        guidata(src,h);
+        UpdateScenarioElementGUI(law_name,param);
     end
-    function h=UpdateScenarioElementGUI(law_name,h,param)
+    function UpdateScenarioElementGUI(law_name,param)
         if strcmp(law_name,'Nadir Pointing')
             return;
         elseif strcmp(law_name,'Base Pointing')
@@ -1226,17 +1247,17 @@ function main()
             
             set(hbox,'Widths',[100 100]);
             
-            base_index=find(strcmp(spn_scenarioelementbase.String,param.Base));
+            base_index=strfnd(spn_scenarioelementbase,param.Base);
             if isempty(base_index)
                 base_index=1;
             end
             spn_scenarioelementbase.Value=base_index;
             
-            h.scenarioelementgui=containers.Map;
-            h.scenarioelementgui('vbox')=vbox;
-            h.scenarioelementgui('hbox')=hbox;
-            h.scenarioelementgui('txt_scenarioelementbase')=txt_scenarioelementbase;
-            h.scenarioelementgui('spn_scenarioelementbase')=spn_scenarioelementbase;
+            gui.scenarioelementgui=containers.Map;
+            gui.scenarioelementgui('vbox')=vbox;
+            gui.scenarioelementgui('hbox')=hbox;
+            gui.scenarioelementgui('txt_scenarioelementbase')=txt_scenarioelementbase;
+            gui.scenarioelementgui('spn_scenarioelementbase')=spn_scenarioelementbase;
         elseif strcmp(law_name,'Solar Pointing')
             return;
         end
@@ -1245,38 +1266,13 @@ function main()
         global current_scenario
         newdata={};
         keys=current_scenario.keys;
-        [sortedKeys sortIdx]=sort(keys);
+        [sortedKeys, sortIdx]=sort(keys);
         values=current_scenario.values;
         sortedValues=values(sortIdx);
         for i=1:length(sortedKeys)
             key=int2str(i);
             element=current_scenario(key);
-            condition_name1=element.Condition.Condition1;
-            condition_name2=element.Condition.Condition2;
-            condition_name3=element.Condition.Condition3;
-            operator1=element.Condition.Operator1;
-            operator2=element.Condition.Operator2;
-            e1=~strcmp(condition_name1,' ');
-            e2=~strcmp(condition_name2,' ');
-            e3=~strcmp(condition_name3,' ');
-            space=32;
-            if e1
-                condition=condition_name1;
-            end
-            if e2
-                if e1
-                    condition=strcat(condition,space,operator1,space,condition_name2);
-                else
-                    condition=condition_name2;
-                end
-            end
-            if e3
-                if ~e1 && ~e2
-                    condition=condition_name3;
-                else
-                    condition=strcat(condition,space,operator2,space,condition_name3);
-                end
-            end
+            condition=GetElementConditionStr(element.Condition);
             law_name=element.Law;
             param=element.Parameters;
             param_str=GetScenarioElementParamStr(law_name,param);
@@ -1304,7 +1300,7 @@ function main()
         UpdateTab4();        
     end
     function UpdateTab1()
-        config_name=gui.spn_generalconfig.String{gui.spn_generalconfig.Value};
+        config_name=spnstr(gui.spn_generalconfig);
         if strcmp(config_name,'Default')
             gui.btn_updategeneralconfig.Enable='off';
             gui.btn_deletegeneralconfig.Enable='off';
@@ -1317,8 +1313,8 @@ function main()
         spacecraft_name=config.spacecraft_name;
         cond0_name=config.cond0_name;
 
-        gui.spn_spacecraft.Value=find(strcmp(gui.spn_spacecraft.String,spacecraft_name));
-        gui.spn_cond0.Value=find(strcmp(gui.spn_cond0.String,cond0_name));
+        strfnd(gui.spn_spacecraft,spacecraft_name);
+        strfnd(gui.spn_cond0,cond0_name);
 
         UpdateSpacecraftData(spacecraft_name);
         UpdateCond0Data(cond0_name);   
@@ -1360,11 +1356,11 @@ function main()
         gui.ed_videoframerate.Enable=enable_video_config;
         gui.ed_videoframerate.String=num2str(anim_video_frame_rate);
 
-        UpdateActuatorsParameters(gui.spn_actuators,config.actuators('name'),config.actuators('parameters'));
+        UpdateActuatorsParameters(config.actuators('name'),config.actuators('parameters'));
     end
     function UpdateTab2()
         global current_conditions current_scenario
-        config_name=gui.spn_attitudeconfig.String{gui.spn_attitudeconfig.Value};
+        config_name=spnstr(gui.spn_attitudeconfig);
         if strcmp(config_name,'Default')
             gui.btn_updateattitudeconfig.Enable='off';
             gui.btn_deleteattitudeconfig.Enable='off';
@@ -1376,7 +1372,7 @@ function main()
         
         
         gui.spn_attitudeconfig.String=data.configs.attitude.keys;
-        gui.spn_attitudeconfig.Value=find(strcmp(gui.spn_attitudeconfig.String,config_name));
+        strfnd(gui.spn_attitudeconfig,config_name);
             
         % Deep copy config.conditions to current_conditions
         current_conditions=containers.Map;
@@ -1407,9 +1403,9 @@ function main()
             type='Time';
             param=struct([]);
         end
-        UpdateConditionDefinitionParameters(gui.tbl_attitudeelementaryconditions,name,type,param);
+        UpdateConditionDefinitionParameters(name,type,param);
         UpdateScenarioTable();
-        UpdateScenarioElementDefinitionParameters(gui.tbl_attitudesequence,1);
+        UpdateScenarioElementDefinitionParameters(1);
     end
     function UpdateTab3()
     end
@@ -1422,17 +1418,16 @@ function main()
         delete(gui.window);
     end % onExit
 
+    %% Simulation
     function StartSimulation()
-        %% Header
-        global current_conditions current_scenario;
+        global current_scenario;
 
         %% Imports
         igrf11300km=load('igrf11-300km.mat');
         %load b_o_avg_dipole_model.mat
 
-        %% Display init
+        %% Init
         fprintf("Setting up model...\n\n")
-
         c=data.constants;
 
         %% Gather GUI Data
@@ -1482,8 +1477,6 @@ function main()
         data.constants.T_o = 2*pi/data.constants.w_0; %Orbit period [s]
         data.constants.v0 = 2*pi*data.constants.r_o/data.constants.T_o;
         data.constants.T = round(data.constants.T_o);
-
-
 
         %% Inertia tensor
         data.constants.I_x=data.constants.m_s/12*(data.constants.dim(2)^2+data.constants.dim(3)^2);
@@ -1539,7 +1532,6 @@ function main()
             step=step+1;
         end
 
-
         %% Attitude control (LQR)
 
         fprintf("Computing LQR variable gain... ")
@@ -1552,7 +1544,9 @@ function main()
 
         scenario=current_scenario;
         scenario_keys=scenario.keys;
-        conditions=current_conditions;
+        if isempty(scenario_keys)
+            error('The current attitude scenario is empty. Please add an element in the Attitude tab.')
+        end
 
         step=1;
         for t=t_data'
@@ -1570,84 +1564,39 @@ function main()
             end
 
             %Gather orbital data
-            Rio=Rio_data(:,:,step);
-            center=center_data(:,step);
-            phi=phi_data(1,step);
-            theta=theta_data(1,step);
-            longitude=180/pi*phi;
-            latitude=180-180/pi*theta;
+            state=struct();
+            state.t=t;
+            state.Rio=Rio_data(:,:,step);
+            state.center=center_data(:,step);
+            state.phi=phi_data(1,step);
+            state.theta=theta_data(1,step);
+            state.longitude=180/pi*state.phi;
+            state.latitude=180-180/pi*state.theta;
 
             %Attitude control scenario
             for i=1:length(scenario_keys)
                 element_tmp=scenario(int2str(i));
-                condition_name1=element_tmp.Condition.Condition1;
-                condition_name2=element_tmp.Condition.Condition2;
-                condition_name3=element_tmp.Condition.Condition3;
-                e1=~strcmp(condition_name1,' ');
-                e2=~strcmp(condition_name2,' ');
-                e3=~strcmp(condition_name3,' ');
-                operator1=element_tmp.Condition.Operator1;
-                operator2=element_tmp.Condition.Operator2;
-                conditions_tmp=[];
-                operators={};
-                if e1
-                    condition1=conditions(condition_name1);
-                    conditions_tmp=[conditions_tmp condition1];
-                end
-                if e2
-                    condition2=conditions(condition_name2);
-                    conditions_tmp=[conditions_tmp condition2];
-                    if e1
-                        operators=horzcat(operators,operator1);
-                    end
-                end
-                if e3
-                    condition3=conditions(condition_name3);
-                        conditions_tmp=[conditions_tmp condition3];
-                    if e1 || e2
-                        operators=horzcat(operators,operator2);
-                    end
-                end
-                condition_check=true;
-                for j=1:length(conditions_tmp)
-                    condition=conditions_tmp(j);
-                    if j==1
-                        operator=str2func('and');
-                    else
-                        operator=str2func(operators{j-1});
-                    end
-
-                    if strcmp(condition.Type,'Time')
-                        new_condition=condition.Function(t);
-                    elseif strcmp(condition.Type,'Latitude')
-                        new_condition=condition.Function(latitude);
-                    elseif strcmp(condition.Type,'Longitude')
-                        new_condition=condition.Function(longitude);
-                    end
-                    condition_check=operator(condition_check,new_condition);
-                end
+                complex_condition=element_tmp.Condition;
+                
+                condition_check=CheckComplexCondition(complex_condition,state);
                 if condition_check
                     element=element_tmp;
                     break;
                 end
             end
 
-            if strcmp(element.Law,'Base Pointing')
-                base_name=element.Parameters.Base;
-                base=data.bases(base_name);
-                Rob_chap=point_base(base,center,Rio,t,data.constants.w_e_deg);
-            elseif strcmp(element.Law,'Nadir Pointing')
-                Rob_chap=point_nadir(center,Rio);
-            elseif strcmp(element.Law,'Solar Pointing')
-                Rob_chap=point_sun(center,Rio,t,data.constants.re_m,data.constants.a_sun,data.constants.b_sun,data.constants.e_sun,data.constants.w_sun);
+            if ~exist('element','var')
+                element=scenario(int2str(length(scenario)));
             end
+            
+            Rob_chap=GetRobChap(element.Law,element.Parameters,data,state);
 
             %Compute new attitude reference
             q_chap=rotm2quat(Rob_chap);
 
             %Compute new state space system
             %[A,B,C,D]=state_space_wheels_only(g_chap, w_chap, h_chap, I, w_0);
-            [A,B,C,D]=state_space_wheels_only_2(q_chap, data.constants.w_chap, data.constants.h_chap, data.constants.I, data.constants.w_0);
+            [A,B,C,D]=state_space_wheels_only_2(q_chap, data);
 
             %Compute new LQR gain
             %Gc=gramt(A,B,Tc);
@@ -1687,7 +1636,11 @@ function main()
         sim('spacecraft_model','StartTime','0','StopTime',num2str(sim_time));
     end
 
+    %% Animation
     function StartAnimation()
+        %% Init
+        fprintf("Simulation ended successfully!\n\n");
+        fprintf("Starting animation...\n\n");
 
         t_data=data.preprocessdata.t_data;
         center_data=data.preprocessdata.center_data;
@@ -1696,11 +1649,7 @@ function main()
         
         Rob_data_file=load('data/Rob_data.mat');
         Rob_data=Rob_data_file.Rob_data;
-
-        %% Display init
-        fprintf("Simulation ended successfully!\n\n");
-        fprintf("Starting animation...\n\n");
-
+        
         %% Pre-process
 
         n_data=length(Rob_data.Time); %number of samples from Simulink
@@ -1764,8 +1713,6 @@ function main()
     end
 
     function stopTimer()
-        global earth
-        delete(earth);
         gui.btn_stop.Selected='on';
         set(gui.btn_stop, 'String', 'Restart');
         gui.btn_pause.Enable='off';
@@ -1776,9 +1723,19 @@ function main()
         pauseTimer();
     end
 
-    function startTimer(restart)     
+    function startTimer(restart)
         global last_timer_step timer_step center old_center bases_plt earth lines spacecraft arrows lines2 arrows2;
         
+        if ~restart
+            cla(gui.ax);
+            gui.ax.Title.String='';
+%             delete(earth);
+%             delete(lines);
+%             delete(arrows);
+%             delete(lines2);
+%             delete(arrows2);
+%             delete(bases_plt);
+        end
         anim_data=load('anim/anim_data.mat');
         config=data.general_config;
         t_data=data.preprocessdata.t_data;
@@ -1803,7 +1760,7 @@ function main()
         tic;
         start(handles.timer);
     
-        function TimerStep(src,event)
+        function TimerStep(~,~)
        
             % These demos need a window opening
             n_data=length(anim_data.times);
@@ -1841,7 +1798,7 @@ function main()
                     step=step+1;
                 end
                 
-                 %% Axis
+                %% Axis
                 %Labels
                 xlabel('x') 
                 ylabel('y') 
@@ -1923,6 +1880,10 @@ function main()
             i=0;
             while pause_time<0
                 i=i+1;
+                if timer_step+i>length(anim_data.times)
+                    i=i-1;
+                    break;
+                end
                 dt=anim_data.times(timer_step+i)-anim_data.times(timer_step);
                 delay=toc;
                 pause_time=dt-delay;

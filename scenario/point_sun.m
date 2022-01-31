@@ -1,6 +1,7 @@
-function Rob_chap=point_sun(center,Rio,t,re_m,a_sun,b_sun,e_sun,w_sun)
-    [x,y,z]=GetSunPosition(t,a_sun,b_sun,e_sun,w_sun);
-    sun_xyz=[x;y;z]/re_m;
-    Rob_chap=point(sun_xyz,center,Rio);
+function Rob_chap=point_sun(data,state)
+    c=data.constants;
+    [x,y,z]=GetSunPosition(state.t,c.a_sun,c.b_sun,c.e_sun,c.w_sun);
+    sun_xyz=[x;y;z]/c.re_m;
+    Rob_chap=point(sun_xyz,state.center,state.Rio);
 end
 

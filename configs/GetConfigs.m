@@ -1,10 +1,11 @@
 function configs=GetConfigs()
 
+    %% General configs
     def_generalconfig_name='Default';
     def_spacecraft_name='Default';
     def_actuators=containers.Map;
     def_actuators('name')='Reaction wheels';
-    def_actuators('parameters')=struct('number_of_wheels',4,'wheels_config','Orthogonal');
+    def_actuators('parameters')=struct('number_of_wheels',3,'wheels_config','Orthogonal');
     def_cond0_name='ISS';
     def_attitude_wchap=[0;0;0]; %spacecraft weight
     def_attitude_hchap=[.0005;.0005;.0005]; %spacecraft weight
@@ -46,11 +47,20 @@ function configs=GetConfigs()
     general_configs_file=load('configs/general_configs.mat');
     all_general_configs=general_configs_file.configs;
 
-    %%%%
+    %% Attitude configs
 
     def_attitudeconfig_name='Default';
     def_conditions=containers.Map;
+    def_conditions('t0-100')=CreateCondition('t0-100','Time',struct('StartTime',0,'EndTime',100));
+    def_conditions('t100-200')=CreateCondition('t100-200','Time',struct('StartTime',100,'EndTime',200));
+    def_conditions('t200-300')=CreateCondition('t200-300','Time',struct('StartTime',200,'EndTime',300));
     def_scenario=containers.Map;
+    condition1=CreateScenarioElementCondition('t0-100');
+    condition2=CreateScenarioElementCondition('t0-100','or','t200-300');
+    condition3=CreateScenarioElementCondition('t100-200');
+    def_scenario('1')=CreateScenarioElement(condition1,'Nadir Pointing');
+    def_scenario('2')=CreateScenarioElement(condition2,'Base Pointing',struct('Base','A'));
+    def_scenario('3')=CreateScenarioElement(condition3,'Solar Pointing');
 
     attitude_config_default=struct('name',def_attitudeconfig_name,...
         'conditions',def_conditions,...
