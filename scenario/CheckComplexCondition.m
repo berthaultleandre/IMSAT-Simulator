@@ -1,5 +1,4 @@
 function b = CheckComplexCondition(complex_condition,state)
-    global current_conditions
     [elementary_conditions,operators]=SplitComplexCondition(complex_condition);  
     b=true;
     operator=str2func('and');

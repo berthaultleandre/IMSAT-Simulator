@@ -39,12 +39,12 @@ function main()
         gui.fileMenu = uimenu(gui.window, 'Label', 'File');
         uimenu(gui.fileMenu, 'Label', 'Exit', 'Callback', @OnExit);
         
-        gui.main_tabgp = uitabgroup(gui.window,'Position',[0 0 1 1]);
-        gui.main_tab1 = uitab(gui.main_tabgp,'Title','General');
-        gui.main_tab2 = uitab(gui.main_tabgp,'Title','Attitude');
-        gui.main_tab3 = uitab(gui.main_tabgp,'Title','Simulation');
-        gui.main_tab4 = uitab(gui.main_tabgp,'Title','Animation');
-        gui.main_tab4.Parent=[];
+        gui.tabgp = uitabgroup(gui.window,'Position',[0 0 1 1]);
+        gui.tab1 = uitab(gui.tabgp,'Title','General');
+        gui.tab2 = uitab(gui.tabgp,'Title','Attitude');
+        gui.tab3 = uitab(gui.tabgp,'Title','Simulation');
+        gui.tab4 = uitab(gui.tabgp,'Title','Animation');
+        gui.tab4.Parent=[];
         
         CreateTab1();
         CreateTab2();
@@ -54,7 +54,7 @@ function main()
         CreateControls();
         
         function CreateTab1()
-            gui.layout1 = uix.VBox('Parent', gui.main_tab1);
+            gui.layout1 = uix.VBox('Parent', gui.tab1);
 
             %% Panel 0 : Config
 
@@ -279,7 +279,7 @@ function main()
         end
 
         function CreateTab2()
-            gui.layout2 = uix.VBox('Parent', gui.main_tab2);
+            gui.layout2 = uix.VBox('Parent', gui.tab2);
 
             %% Panel 0 : Config
 
@@ -413,7 +413,7 @@ function main()
         end
         
         function CreateTab3() 
-            gui.layout3 = uix.VBox('Parent', gui.main_tab3, 'Spacing', 20);
+            gui.layout3 = uix.VBox('Parent', gui.tab3, 'Spacing', 20);
 
             gui.layout31 = uix.HBox('Parent',gui.layout3);
             
@@ -423,7 +423,7 @@ function main()
             gui.layout3111 = uix.VBox('Parent',gui.layout311,'Spacing',20);
             
             gui.layout31111 = uix.HBox('Parent',gui.layout3111,'Spacing',20);
-            def_sim_time=200;
+            def_sim_time=10;
             gui.txt_simtime=new_text(gui.layout31111,'Simulation time (s)');
             gui.ed_simtime=new_edit(gui.layout31111,num2str(def_sim_time));
             
@@ -446,20 +446,32 @@ function main()
         end
         
         function CreateTab4()
-            
-           gui.layout4 = uix.VBox('Parent', gui.main_tab4, 'Spacing', 3, 'Padding', 100);
+            gui.layout4 = uix.VBox('Parent', gui.tab4, 'Spacing', 3);
 
-           gui.ax=axes(gui.layout4);  
-           gui.ax.Position=[0.25 0.25 0.5 0.5];
-           rotate3d on
-           gui.layout42 = uix.HButtonBox('Parent',gui.layout4,'Spacing',3);
+            gui.layout41 = uix.HBox('Parent', gui.layout4, 'Spacing', 3, 'Padding', 100);
+            axis vis3d
+            gui.ax_anim=axes(gui.layout41);  
+            gui.ax_anim.Position=[0.25 0.25 0.5 0.5];
+            rotate3d on
+            hManager = uigetmodemanager(gui.window);
+            hManager.CurrentMode.ModeStateData.textState = 0;
             
-           gui.layout4.Heights=[-4 -1];
+            gui.layout411 = uix.VBox('Parent', gui.layout41, 'Spacing', 3);
+
+            gui.ax_gndtrk=axes(gui.layout411);
+
+            gui.ax_eulang=axes(gui.layout411);
+
+            set(gui.layout41,'Widths',[-1 -1]);
             
-           gui.btn_pause=new_button(gui.layout42,'Pause');
-           gui.btn_pause.Enable='off';
-           gui.btn_stop=new_button(gui.layout42,'Stop');
-           gui.btn_stop.Enable='off';
+            gui.layout42 = uix.HButtonBox('Parent',gui.layout4,'Spacing',3);
+
+            gui.btn_pause=new_button(gui.layout42,'Pause');
+            gui.btn_pause.Enable='off';
+            gui.btn_stop=new_button(gui.layout42,'Stop');
+            gui.btn_stop.Enable='off';
+
+            gui.layout4.Heights=[-4 -1];
         end
         
         function CreateControls()
@@ -753,11 +765,11 @@ function main()
     % Tab 3
     function OnPressed_StartSimulationButton(~,~)
         if isfield(gui,'ax')
-            cla(gui.ax);
-            gui.ax.Title.String='';
+            cla(gui.ax_anim);
+            gui.ax_anim.Title.String='';
         end
-        gui.main_tab4.Parent=gui.main_tabgp;
-        gui.main_tabgp.SelectedTab=gui.main_tab4;
+        gui.tab4.Parent=gui.tabgp;
+        gui.tabgp.SelectedTab=gui.tab4;
         data.general_config=GetGeneralConfigFromGUI('');
         data.sim_time=str2double(gui.ed_simtime.String);
         StartSimulation();
@@ -1414,7 +1426,7 @@ function main()
 
     %% Menu callbacks
     function OnExit(~,~)
-        % User wants to quit out of the application
+        stopTimer();
         delete(gui.window);
     end % onExit
 
@@ -1432,18 +1444,18 @@ function main()
 
         %% Gather GUI Data
         general_config=data.general_config;
+        
         spacecraft_name=general_config.spacecraft_name;
+        spacecraft=data.spacecrafts(spacecraft_name);
+        
         cond0_name=general_config.cond0_name;
+        cond0=data.initial_conditions_sets(cond0_name);
+        
         r_ratio=general_config.r_ratio;
+        
         sim_time=data.sim_time;   
 
-        spacecraft=data.spacecrafts(spacecraft_name);
-        cond0=data.initial_conditions_sets(cond0_name);
-
-        %% Orbit parameters
-        data.constants.tol = 1e-10; %tolerance for orbit calculus
-
-        %% Reaction wheels
+        %% Actuators
         actuators=general_config.actuators;
         name=actuators('name');
         if strcmp(name,'Reaction wheels') || strcmp(name,'Mix')
@@ -1506,31 +1518,50 @@ function main()
 
         y0=[data.constants.r_eci_0' data.constants.v_eci_0']; %initial conditions set, position and velocity
 
-        [t_data,r_data,v_data]=get_orbit(tspan,y0,data); %calculates orbit
-        n_data=length(t_data);
+        [t_orb,r_orb,v_orb]=GetSpacecraftOrbit(tspan,y0,data); %calculates orbit
 
         %Calculate orbital data
-        center_data=zeros(3,n_data); %animation positions
-        Rio_data=zeros(3,3,n_data); %rotation matrices inertial to orbit
-        phi_data=zeros(1,n_data); %phi angles inertial to orbit
-        theta_data=zeros(1,n_data); %theta angles inertial to orbit
+        n_step_orb=length(t_orb);
+        pos_orb=zeros(3,n_step_orb); %animation positions
+        Rio_orb=zeros(3,3,n_step_orb); %rotation matrices inertial to orbit
+        phi_orb=zeros(1,n_step_orb); %phi angles inertial to orbit
+        theta_orb=zeros(1,n_step_orb); %theta angles inertial to orbit
 
         step=1;  
-        for t=t_data'
-            r_i=r_data(:,step);
+        for t=t_orb'
+            r_i=r_orb(:,step);
             n=norm(r_i);
             k=n/c.re_m;
-            center=r_i/n*(1+(k-1)*r_ratio);
-            center_data(:,step)=center;
-            theta=atan2(sqrt(center(1)^2+center(2)^2),center(3));
-            phi=atan2(center(2),center(1));
-            theta_data(1,step)=theta;
-            phi_data(1,step)=phi;
-            v_dir=v_data(:,step);
-            Rio=roti2o_2(v_dir,center);
-            Rio_data(:,:,step)=Rio;
+            pos=r_i/n*(1+(k-1)*r_ratio);
+            pos_orb(:,step)=pos;
+            theta=atan2(sqrt(pos(1)^2+pos(2)^2),pos(3));
+            phi=atan2(pos(2),pos(1));
+            theta_orb(1,step)=theta;
+            phi_orb(1,step)=phi;
+            v=v_orb(:,step);
+            Rio=roti2o_2(v,pos);
+            Rio_orb(:,:,step)=Rio;
             step=step+1;
         end
+
+        %% Orbit plot
+        
+        axes(gui.ax_gndtrk);
+        
+        lat = zeros(n_step_orb,1);
+        lon = zeros(n_step_orb,1);
+
+        for i=1:n_step_orb
+            lon(i)=180/pi*phi_orb(1,i);
+            lat(i)=180/pi*(pi/2-theta_orb(1,i));
+        end
+
+        plot(gui.ax_gndtrk,lon, lat);
+
+        title('Ground track of the ISS');
+        xlabel('Longitude (rad)');
+        ylabel('Latitude (rad)');
+        hold on
 
         %% Attitude control (LQR)
 
@@ -1539,8 +1570,10 @@ function main()
         per=0; %percentage to display
         lineLength=fprintf("%d%%\n",per);
 
-        q_chap_data=zeros(4,length(t_data)); %attitude equilibriums
+        q_chap_data=zeros(4,n_step_orb); %attitude equilibriums
         K_data=[]; %variable LQR gain
+        A_data=[]; %variable LQR gain
+        B_data=[]; %variable LQR gain
 
         scenario=current_scenario;
         scenario_keys=scenario.keys;
@@ -1548,15 +1581,15 @@ function main()
             error('The current attitude scenario is empty. Please add an element in the Attitude tab.')
         end
 
+        dt_reg=1;
+        t_reg=0:dt_reg:sim_time;
         step=1;
-        for t=t_data'
-            while (step<=length(t_data) && t>t_data(step))
-                step=step+1;
-            end
-            step=max(step-1,1);
-
+        for t_r=t_reg 
+            [~,idx_orb]=min(abs(t_orb-t_r));
+            t_o=t_orb(idx_orb);
+            
             %Display percentage
-            new_per=floor(t/sim_time*100);
+            new_per=floor(t_r/sim_time*100);
             if (new_per~=per)
                 per=new_per;
                 fprintf(repmat('\b',1,lineLength))
@@ -1565,11 +1598,11 @@ function main()
 
             %Gather orbital data
             state=struct();
-            state.t=t;
-            state.Rio=Rio_data(:,:,step);
-            state.center=center_data(:,step);
-            state.phi=phi_data(1,step);
-            state.theta=theta_data(1,step);
+            state.t=t_r;
+            state.Rio=Rio_orb(:,:,idx_orb);
+            state.pos=pos_orb(:,idx_orb);
+            state.phi=phi_orb(1,idx_orb);
+            state.theta=theta_orb(1,idx_orb);
             state.longitude=180/pi*state.phi;
             state.latitude=180-180/pi*state.theta;
 
@@ -1597,7 +1630,8 @@ function main()
             %Compute new state space system
             %[A,B,C,D]=state_space_wheels_only(g_chap, w_chap, h_chap, I, w_0);
             [A,B,C,D]=state_space_wheels_only_2(q_chap, data);
-
+            A_data(:,(step-1)*9+1:step*9)=A;
+            B_data(:,(step-1)*3+1:step*3)=B;
             %Compute new LQR gain
             %Gc=gramt(A,B,Tc);
             %Q=1/Tc*inv(Gc);
@@ -1608,6 +1642,7 @@ function main()
 
             q_chap_data(:,step)=q_chap;
             K_data(:,(step-1)*nj+1:step*nj)=K_lqr;
+            step=step+1;
         end
 
         %Display complete
@@ -1617,16 +1652,35 @@ function main()
         data.constants.igrf11300km=igrf11300km;
 
         data.preprocessdata=struct();
-        data.preprocessdata.r_data=r_data;
-        data.preprocessdata.v_data=v_data;
-        data.preprocessdata.phi_data=phi_data;
-        data.preprocessdata.theta_data=theta_data;
-        data.preprocessdata.center_data=center_data;
-        data.preprocessdata.Rio_data=Rio_data;
+        data.preprocessdata.r_orb=r_orb;
+        data.preprocessdata.v_orb=v_orb;
+        data.preprocessdata.phi_orb=phi_orb;
+        data.preprocessdata.theta_orb=theta_orb;
+        data.preprocessdata.pos_orb=pos_orb;
+        data.preprocessdata.Rio_orb=Rio_orb;
+        data.preprocessdata.A_data=A_data;
+        data.preprocessdata.B_data=B_data;
         data.preprocessdata.K_data=K_data;
         data.preprocessdata.q_chap_data=q_chap_data;
-        data.preprocessdata.t_data=t_data;
+        data.preprocessdata.t_orb=t_orb;
+        data.preprocessdata.n_step_orb=n_step_orb;
+        data.preprocessdata.t_reg=t_reg;
         
+        data.constants.Cobs=eye(9);
+        %data.constants.Ts=4e-4;
+        data.constants.Ts=1e-2;
+        data.constants.n=4e-2;
+        %Choix 1 : De Larminat
+        % To=100;
+        % Go=gramt(A',Cobs',To);
+        % Robs=1/To*inv(Go);
+        % Qobs=eye(6);
+
+        %Choix 2
+        data.constants.sigma=1e-4;
+        data.constants.Robs=data.constants.sigma*(data.constants.Cobs)'*data.constants.Cobs;
+        data.constants.Qobs=eye(9);
+
         save('data/data.mat','data');
 
         %% Start Simulink model
@@ -1642,73 +1696,103 @@ function main()
         fprintf("Simulation ended successfully!\n\n");
         fprintf("Starting animation...\n\n");
 
-        t_data=data.preprocessdata.t_data;
-        center_data=data.preprocessdata.center_data;
-        Rio_data=data.preprocessdata.Rio_data;
+        t_orb=data.preprocessdata.t_orb;
+        pos_orb=data.preprocessdata.pos_orb;
+        Rio_orb=data.preprocessdata.Rio_orb;
+        n_step_orb=data.preprocessdata.n_step_orb;
         c=data.constants;
+        sim_time=data.sim_time;
+        
+        data.postprocessdata=struct();
         
         Rob_data_file=load('data/Rob_data.mat');
         Rob_data=Rob_data_file.Rob_data;
         
+        data.postprocessdata.Rob_data=Rob_data;
+        
         %% Pre-process
 
-        n_data=length(Rob_data.Time); %number of samples from Simulink
+        t_sim=Rob_data.Time;
+        n_step_sim=length(t_sim); %number of samples from Simulink
+        
+        poss=zeros(3,n_step_sim); %spacecraft position (Simulink samples)
+        Ribs=zeros(3,3*n_step_sim); %rotation matrix inertial to body (Simulink samples)
+        Ss=zeros(16,3*n_step_sim); %spacecrafts (Simulink samples)
 
-        centers=zeros(3,n_data); %spacecraft position (Simulink samples)
-        Ribs=zeros(3,3*n_data); %rotation matrix inertial to body (Simulink samples)
-        Ss=zeros(16,3*n_data); %spacecrafts (Simulink samples)
+        
 
+        
+        dt_anim=1;
         step=1;
-        for k=1:n_data
-            t=Rob_data.Time(k);
-
-            while (step<length(t_data) && t>t_data(step))
-                step=step+1;
-            end
-            step=max(step-1,1);
+        t_anim=0:dt_anim:sim_time;
+        data.anim.t_anim=t_anim;
+        n_step_anim=length(t_anim);
+        phi_ob = zeros(n_step_anim,1);
+        phi_ob = zeros(n_step_anim,1);
+        phi_ob = zeros(n_step_anim,1);
+        for t_a=t_anim
+            [~,idx_orb]=min(abs(t_orb-t_a));
+            t_o=t_orb(idx_orb);
+            [~,idx_sim]=min(abs(t_sim-t_a));
+            t_s=t_sim(idx_sim);
 
             %Gather data
-            center=center_data(:,step);
-            Rio=Rio_data(:,:,step)';
-            centers(:,k)=center;
-            Rob=Rob_data.Data(:,:,k);
+            pos=pos_orb(:,idx_orb);
+            Rio=Rio_orb(:,:,idx_orb)';
+            poss(:,step)=pos;
+            Rob=Rob_data.Data(:,:,idx_sim);
 
             %Calculate rotation matrix inertial to body
             Rib=Rob*Rio;
-            Ribs(:,3*k-2:3*k)=Rib;
+            Ribs(:,3*step-2:3*step)=Rib;
 
             %Pre-create spacecraft
-            S=create_spacecraft(center, Rib, c.dim*data.general_config.anim_spacecraft_size);
-            Ss(:,3*k-2:3*k)=S;
+            S=create_spacecraft(pos, Rib, c.dim*data.general_config.anim_spacecraft_size);
+            Ss(:,3*step-2:3*step)=S;
+            
+            eul_ob=rotm2eul(Rob);
+            phi_ob(step,1)=180/pi*eul_ob(1);
+            theta_ob(step,1)=180/pi*eul_ob(2);
+            psi_ob(step,1)=180/pi*eul_ob(3);
+            
+            step=step+1;
         end
 
+        axes(gui.ax_eulang);
+        plot(gui.ax_eulang,t_anim,phi_ob,t_anim,theta_ob,t_anim,psi_ob);
+        hold on       
+        title('Euler angles between orbital and body frames');
+        xlabel('Time (s)');
+        ylabel('Angle (°)');
+        hold on     
+        %legend('phi','theta','psi','Location','NorthOutside','Orientation','horizontal','Box','off');
+        
         %% Animate
 
         if (data.general_config.anim_save_video)
-            %video = VideoWriter(anim_video_name,anim_video_format);
-            video = VideoWriter(data.general_config.anim_video_name);
+            video = VideoWriter(data.general_config.anim_video_name,data.general_config.anim_video_format);
             video.FrameRate = data.general_config.anim_video_frame_rate;
             video.Quality=90;
             gui.video=video;
             open(video)
         end
-
-        lost_frames=0;
-        %step_time=0.1;
-
-        times=Rob_data.Time;
-        save('anim/anim_data.mat','times','Ss','centers','Ribs')
+        
+        data.anim=struct();
+        data.anim.Ss=Ss;
+        data.anim.poss=poss;
+        data.anim.Ribs=Ribs;
+        data.anim.t_anim=t_anim;
+        
         gui.btn_pause.Enable='on';
         gui.btn_stop.Enable='on';
+
         startTimer(false);
     end
 
     function pauseTimer()
-        guihandles=guidata(gui.window);
-        if isfield(guihandles,'timer') && ~isempty(guihandles.timer)
-            stop(guihandles.timer);
-            guihandles.timer = [];
-            guidata(gui.window,guihandles);
+        if isfield(gui,'timer') && ~isempty(gui.timer)
+            stop(gui.timer);
+            gui.timer = [];
         end
     end
 
@@ -1724,60 +1808,64 @@ function main()
     end
 
     function startTimer(restart)
-        global last_timer_step timer_step center old_center bases_plt earth lines spacecraft arrows lines2 arrows2;
+        global gndtrk_line eulang_line last_anim_step anim_step pos old_pos bases_plt earth lines spacecraft arrows lines2 arrows2;
         
         if ~restart
-            cla(gui.ax);
-            gui.ax.Title.String='';
-%             delete(earth);
-%             delete(lines);
-%             delete(arrows);
-%             delete(lines2);
-%             delete(arrows2);
-%             delete(bases_plt);
+            cla(gui.ax_anim);
+            gui.ax_anim.Title.String='';
         end
-        anim_data=load('anim/anim_data.mat');
+        
+        anim_data=data.anim;
+        t_anim=data.anim.t_anim;
+        t_orb=data.preprocessdata.t_orb;
+        phi_orb=data.preprocessdata.phi_orb;
+        n_step_anim=length(t_anim);
         config=data.general_config;
-        t_data=data.preprocessdata.t_data;
-        center_data=data.preprocessdata.center_data;
-        Rio_data=data.preprocessdata.Rio_data;
+        poss=data.anim.poss;
         c=data.constants;
         w_e_deg=c.w_e_deg;
         if (~restart)
-            last_timer_step=1;
-            timer_step=1;
+            last_anim_step=1;
+            anim_step=1;
         end
         
-        
-        handles=guidata(gui.window);
-        handles.timer = timer('Name','MyTimer',               ...
-                                'Period',0.001,                    ... 
-                                'StartDelay',0,                 ... 
-                                'TasksToExecute',inf,           ... 
-                                'ExecutionMode','fixedSpacing', ...
-                                'TimerFcn',@TimerStep); 
-        guidata(gui.window,handles);
+        gui.timer = timer('Name','MyTimer',             ...
+                        'Period',1,          ... 
+                        'StartDelay',0,                 ... 
+                        'TasksToExecute',n_step_anim,           ... 
+                        'ExecutionMode','fixedDelay', ...
+                        'TimerFcn',@TimerStep);
         tic;
-        start(handles.timer);
+        axes(gui.ax_anim);
+        start(gui.timer);
     
         function TimerStep(~,~)
-       
             % These demos need a window opening
-            n_data=length(anim_data.times);
-
-            if (timer_step==n_data)
+            if (anim_step>n_step_anim)
                 stopTimer();
                 return;
             end
-
-            t=anim_data.times(timer_step);
-            last_t=anim_data.times(last_timer_step);
+            
+            t=t_anim(anim_step);
+            last_t=t_anim(last_anim_step);
+            
+            if anim_step~=1
+                delete(eulang_line);
+                delete(gndtrk_line);
+            end
+            
+            eulang_line=xline(gui.ax_eulang,t);
+            hold on
+            [~,idx_orb]=min(abs(t_orb-t));
+            phi=180/pi*phi_orb(1,idx_orb);
+            gndtrk_line=xline(gui.ax_gndtrk,phi);
+            hold on
             
             title({'IMSAT Simulator',['t=',num2str(t),'s']})
             
-            origin=center_data(:,1);
-            if (timer_step==1)
-                center=origin;
+            origin=poss(:,1);
+            if (anim_step==1)
+                pos=origin;
                 dt=t-0;
                 
                 %Draw Earth
@@ -1787,15 +1875,13 @@ function main()
                 drawframe([0;0;0],eye(3),config.anim_arrow_len, config.anim_line_len);
 
                 %Draw orbit line
-                step=1;
-                for t2=t_data'
-                    old_center=center;
-                    center=center_data(:,step);
-                    w=plot3([old_center(1), center(1)],...
-                        [old_center(2), center(2)],...
-                        [old_center(3), center(3)],'c');
+                for i=2:n_step_anim
+                    pos_temp=poss(:,i);
+                    old_pos_temp=poss(:,i-1);
+                    plot3([old_pos_temp(1), pos_temp(1)],...
+                        [old_pos_temp(2), pos_temp(2)],...
+                        [old_pos_temp(3), pos_temp(3)],'c');
                     hold on
-                    step=step+1;
                 end
                 
                 %% Axis
@@ -1845,29 +1931,32 @@ function main()
                 name=base.name;
                 [x,y,z]=base_position(base,t,0,w_e_deg);
                 plt=plot3(x,y,z,'ro', 'MarkerSize', 5);
+                hold on
                 [x,y,z]=base_position(base,t,0.3,w_e_deg);
                 txt=text(x,y,z,name);
+                hold on
             end
             
             %Gather next data
-            center=anim_data.centers(:,timer_step);
-            if (timer_step==1)
-                old_center=center;
+            pos=poss(:,anim_step);
+            if (anim_step==1)
+                old_pos=pos;
             end
-            Rib=anim_data.Ribs(:,3*timer_step-2:3*timer_step);
-            S=anim_data.Ss(:,3*timer_step-2:3*timer_step);
+            Rib=anim_data.Ribs(:,3*anim_step-2:3*anim_step);
+            S=anim_data.Ss(:,3*anim_step-2:3*anim_step);
 
             %Display new elements
             spacecraft=draw_spacecraft(S);
-            [arrows,lines]=drawframe(center, Rib, config.anim_arrow_len, config.anim_line_len);
+            [arrows,lines]=drawframe(pos, Rib, config.anim_arrow_len, config.anim_line_len);
            
             function plt = draw_spacecraft(S)
-                plt=plot3(S(:,1),S(:,2),S(:,3));
+                plt=plot3(S(:,1),S(:,2),S(:,3),'b');
+                hold on
             end
 
-            v=plot3([old_center(1), center(1)],...
-                [old_center(2), center(2)],...
-                [old_center(3), center(3)],'m'); %display travelled distance
+            v=plot3([old_pos(1), pos(1)], ...
+                [old_pos(2), pos(2)], ...
+                [old_pos(3), pos(3)],'m'); %display travelled distance
             hold on
             v.LineWidth=2;
 
@@ -1876,26 +1965,27 @@ function main()
                 writeVideo(gui.video, frame);
             end
 
-            pause_time=-1;
+            %{
+            pause_time = -1;
             i=0;
             while pause_time<0
                 i=i+1;
-                if timer_step+i>length(anim_data.times)
+                if anim_step+i>length(anim_data.times)
                     i=i-1;
                     break;
                 end
-                dt=anim_data.times(timer_step+i)-anim_data.times(timer_step);
-                delay=toc;
-                pause_time=dt-delay;
+                dt = anim_data.times(anim_step+i)-anim_data.times(anim_step);
+                delay = toc;
+                pause_time = dt/config.anim_animation_speed-delay-timer_period;
             end
-            last_timer_step=timer_step;
-            timer_step=min(timer_step+i,n_data);
-            pause_time=pause_time/config.anim_animation_speed;
+            last_anim_step = anim_step;
+            anim_step = min(anim_step+i,n_data);
             pause(pause_time);
         
             tic
-            
-            
+            %}
+            last_anim_step = anim_step;
+            anim_step = anim_step+config.anim_animation_speed;
         end
         
          function [arrows, lines] = drawframe(center, R, arrow_len, line_len)
@@ -1917,6 +2007,7 @@ function main()
             plty=plot3([center(1), uy(1)],[center(2), uy(2)],[center(3), uy(3)],'g');
             hold on
             pltz=plot3([center(1), uz(1)],[center(2), uz(2)],[center(3), uz(3)],'b');
+            hold on
             arrows=[plt1 plt2 plt3];
             lines=[pltx plty pltz];
         end
