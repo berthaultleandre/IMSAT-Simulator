@@ -1,15 +1,10 @@
 function data = GetData()
-    constants = GetConstants();
-    spacecrafts = GetSpacecrafts();
-    initial_conditions_sets = GetInitialConditionsSets(constants);
-    configs = GetConfigs();
-    wheels_configurations = GetWheelsConfigurations();
-    bases = GetBases();
-    data = struct('constants',constants,...
-        'spacecrafts',spacecrafts,...
-        'initial_conditions_sets',initial_conditions_sets,...
-        'configs',configs,...
-        'wheels_configurations',wheels_configurations,...
-        'bases',bases);
+    data=struct();
+    data.constants = GetConstants();
+    data.spacecrafts = GetSpacecrafts();
+    data.initial_conditions_sets = GetInitialConditionsSets(data.constants);
+    data.configs = GetConfigs();
+    data.wheels_configurations = GetWheelsConfigurations();
+    data.bases = GetBases();
 end
 
