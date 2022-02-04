@@ -1,5 +1,5 @@
-function b = CheckComplexCondition(complex_condition,state)
-    [elementary_conditions,operators]=SplitComplexCondition(complex_condition);  
+function b = CheckComplexCondition(complex_condition,data,state)
+    [elementary_conditions,operators]=SplitComplexCondition(complex_condition,data);  
     b=true;
     operator=str2func('and');
     for j=1:length(elementary_conditions)

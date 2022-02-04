@@ -1,5 +1,5 @@
-function [elementary_conditions,operators] = SplitComplexCondition(complex_condition)
-    global current_conditions
+function [elementary_conditions,operators] = SplitComplexCondition(complex_condition,data)
+    current_conditions=data.attitude.conditions;
     elementary_conditions=[];
     operators={};
     e1=isfield(complex_condition,'Condition1');

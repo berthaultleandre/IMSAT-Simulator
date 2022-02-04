@@ -10,6 +10,7 @@ function configs=GetConfigs()
     def_attitude_wchap=[0;0;0]; %spacecraft weight
     def_attitude_hchap=[.0005;.0005;.0005]; %spacecraft weight
     def_anim_animation_speed=8; %animation speed
+    def_anim_fps=5;
     def_anim_spacecraft_size=2; %spacecraft size
     def_anim_arrow_len=1; %length of frames' arrows
     def_anim_line_len=5; %length of satellite's frame lines
@@ -27,6 +28,7 @@ function configs=GetConfigs()
         'attitude_wchap',def_attitude_wchap,...
         'attitude_hchap',def_attitude_hchap,...
         'anim_animation_speed',def_anim_animation_speed,...
+        'anim_fps',def_anim_fps,...
         'anim_spacecraft_size',def_anim_spacecraft_size,...
         'anim_arrow_len',def_anim_arrow_len,...
         'anim_line_len',def_anim_line_len,...
@@ -76,7 +78,30 @@ function configs=GetConfigs()
     attitude_configs_file=load('configs/attitude_configs.mat');
     all_attitude_configs=attitude_configs_file.configs;
     
+    %% Simulation configs
+
+    def_simulationconfig_name='Default';
+    def_simtime=30;
+    def_regstep=1;
+    
+    simulation_config_default=struct('name',def_simulationconfig_name,...
+        'simtime',def_simtime,...
+        'regstep',def_regstep);
+
+    all_simulation_configs=containers.Map;
+    all_simulation_configs('Default')=simulation_config_default;
+
+    if exist('configs/simulation_configs.mat', 'file') ~= 2
+        configs=all_simulation_configs;
+        save('configs/simulation_configs.mat','configs')
+    end
+    simulation_configs_file=load('configs/simulation_configs.mat');
+    all_simulation_configs=simulation_configs_file.configs;
+    
+    %% Global
+    
     configs=struct();
     configs.general=all_general_configs;
     configs.attitude=all_attitude_configs;
+    configs.simulation=all_simulation_configs;
 end

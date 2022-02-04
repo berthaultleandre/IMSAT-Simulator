@@ -12,7 +12,7 @@ function main()
     
     % Create interface
     gui  = CreateInterface();
-
+    
     % Update the GUI with default data
     UpdateInterface();    
  
@@ -214,33 +214,38 @@ function main()
 
             gui.txt_animspeed=new_text(gui.layout14111,'Animation speed');
             gui.ed_animspeed=new_edit(gui.layout14111,'');
-
+            
             gui.layout14112 = uix.HBox('Parent',gui.layout1411,'Spacing',20);
-
-            gui.txt_spacecraftsize=new_text(gui.layout14112,'Spacecraft size');
-            gui.ed_spacecraftsize=new_edit(gui.layout14112,'');
-
+            
+            gui.txt_animfps=new_text(gui.layout14112,'Animation fps');
+            gui.spn_animfps=new_spinner(gui.layout14112,{'1';'2';'3';'4';'5'});
+            
             gui.layout14113 = uix.HBox('Parent',gui.layout1411,'Spacing',20);
 
-            gui.txt_arrowlen=new_text(gui.layout14113,'Arrow length');
-            gui.ed_arrowlen=new_edit(gui.layout14113,'');
+            gui.txt_spacecraftsize=new_text(gui.layout14113,'Spacecraft size');
+            gui.ed_spacecraftsize=new_edit(gui.layout14113,'');
 
             gui.layout14114 = uix.HBox('Parent',gui.layout1411,'Spacing',20);
 
-            gui.txt_linelen=new_text(gui.layout14114,'Line length');
-            gui.ed_linelen=new_edit(gui.layout14114,'');
+            gui.txt_arrowlen=new_text(gui.layout14114,'Arrow length');
+            gui.ed_arrowlen=new_edit(gui.layout14114,'');
 
             gui.layout14115 = uix.HBox('Parent',gui.layout1411,'Spacing',20);
 
-            gui.txt_axislimitratio=new_text(gui.layout14115,'Axis limit ratio');
-            gui.ed_axislimitratio=new_edit(gui.layout14115,'');
+            gui.txt_linelen=new_text(gui.layout14115,'Line length');
+            gui.ed_linelen=new_edit(gui.layout14115,'');
 
             gui.layout14116 = uix.HBox('Parent',gui.layout1411,'Spacing',20);
 
-            gui.txt_radiusratio=new_text(gui.layout14116,'Radius ratio');
-            gui.ed_radiusratio=new_edit(gui.layout14116,'');
+            gui.txt_axislimitratio=new_text(gui.layout14116,'Axis limit ratio');
+            gui.ed_axislimitratio=new_edit(gui.layout14116,'');
 
-            set(gui.layout1411,'Heights',[25 25 25 25 25 25]);
+            gui.layout14117 = uix.HBox('Parent',gui.layout1411,'Spacing',20);
+
+            gui.txt_radiusratio=new_text(gui.layout14117,'Radius ratio');
+            gui.ed_radiusratio=new_edit(gui.layout14117,'');
+            
+            set(gui.layout1411,'Heights',[25 25 25 25 25 25 25]);
             
             gui.layout1412 = uix.VBox('Parent',gui.layout141,'Spacing',20);
 
@@ -413,8 +418,35 @@ function main()
             
         end    
         function CreateTab3()
-            gui.layout3 = uix.VBox('Parent', gui.tab3, 'Spacing', 20);
+            
+            gui.layout3 = uix.VBox('Parent', gui.tab3);
 
+            %% Panel 0 : Config
+
+            gui.layout30 = uix.BoxPanel('Parent',gui.layout3,'Title','Config','FontSize',10,...
+                                        'BorderType','etchedin','Padding',20);
+
+            gui.layout301=uix.HBox('Parent', gui.layout30, 'Spacing', 20);
+            
+            gui.txt_simulationconfig=new_text(gui.layout301,'Config');
+            gui.spn_simulationconfig=new_spinner(gui.layout301,data.configs.simulation.keys);
+       
+            gui.layout3011=uix.HButtonBox('Parent', gui.layout301, 'Spacing', 20);
+            
+            gui.btn_updatesimulationconfig=new_button(gui.layout3011,'Update');
+            gui.btn_deletesimulationconfig=new_button(gui.layout3011,'Delete');
+            
+            gui.txt_createsimulationconfig=new_text(gui.layout301,'New config name');
+            gui.ed_createsimulationconfig=new_edit(gui.layout301,'');
+            
+            gui.layout3012=uix.HButtonBox('Parent', gui.layout301, 'Spacing', 20);
+            
+            gui.btn_createsimulationconfig=new_button(gui.layout3012,'Create');
+            
+            set(gui.layout301, 'Widths', [100 150 150 100 100 100]);
+            
+            %% Panel 1 : Simulation
+            
             gui.layout31 = uix.HBox('Parent',gui.layout3);
             
             gui.layout311 = uix.BoxPanel('Parent',gui.layout31,'Title','Simulation','FontSize',10,...
@@ -423,18 +455,25 @@ function main()
             gui.layout3111 = uix.VBox('Parent',gui.layout311,'Spacing',20);
             
             gui.layout31111 = uix.HBox('Parent',gui.layout3111,'Spacing',20);
-            def_sim_time=10;
+            
             gui.txt_simtime=new_text(gui.layout31111,'Simulation time (s)');
-            gui.ed_simtime=new_edit(gui.layout31111,num2str(def_sim_time));
+            gui.ed_simtime=new_edit(gui.layout31111,'');
             
             set(gui.layout31111,'Widths',[100 100]);
             
-            gui.layout31112 = uix.HButtonBox('Parent',gui.layout3111);
-            gui.btn_startsim=new_button(gui.layout31112,'Start Simulation');
+            gui.layout31112 = uix.HBox('Parent',gui.layout3111,'Spacing',20);
             
-            set(gui.layout31112,'ButtonSize', [130 35]);
+            gui.txt_regstep=new_text(gui.layout31112,'Regulation step (s)');
+            gui.ed_regstep=new_edit(gui.layout31112,'');
             
-            set(gui.layout3111,'Heights',[25 20]);
+            set(gui.layout31112,'Widths',[100 100]);
+            
+            gui.layout31113 = uix.HButtonBox('Parent',gui.layout3111);
+            gui.btn_startsim=new_button(gui.layout31113,'Start Simulation');
+            
+            set(gui.layout31113,'ButtonSize', [130 35]);
+            
+            set(gui.layout3111,'Heights',[25 25 20]);
             
             gui.layout312 = uix.HBox('Parent',gui.layout31,'Spacing',3);
             
@@ -442,7 +481,7 @@ function main()
             
             gui.layout32 = uix.HBox('Parent',gui.layout3);
             
-            set(gui.layout3,'Heights',[140 -1]);
+            set(gui.layout3,'Heights',[95 180 -1]);
         end
         function CreateTab4()
             gui.layout4 = uix.VBox('Parent', gui.tab4, 'Spacing', 3);
@@ -457,7 +496,7 @@ function main()
             
             gui.layout411 = uix.VBox('Parent', gui.layout41, 'Spacing', 3);
 
-            gui.ax_gndtrk=axes(gui.layout411);
+            gui.ax_gndtrk=geoaxes(gui.layout411);
 
             gui.ax_eulang=axes(gui.layout411);
 
@@ -503,6 +542,7 @@ function main()
             gui.ed_attitudehchapz.Callback={@OnEdited_GeneralTab};
 
             gui.ed_animspeed.Callback={@OnEdited_GeneralTab};
+            gui.spn_animfps.Callback={@OnEdited_GeneralTab};
             gui.ed_spacecraftsize.Callback={@OnEdited_GeneralTab};
             gui.ed_arrowlen.Callback={@OnEdited_GeneralTab};
             gui.ed_linelen.Callback={@OnEdited_GeneralTab};
@@ -547,8 +587,20 @@ function main()
                 {@OnPressed_AddAttitudeSequenceElementButton};
             
             %% Tab 3
+            gui.btn_updatesimulationconfig.Callback=...
+                {@OnPressed_UpdateSimulationConfig};
+            gui.btn_deletesimulationconfig.Callback=...
+                {@OnPressed_DeleteSimulationConfig};
+            gui.btn_createsimulationconfig.Callback=...
+                {@OnPressed_CreateSimulationConfig};
+            gui.spn_simulationconfig.Callback=...
+                {@OnSelectedItem_SimulationConfigSpinner};
+            
             gui.btn_startsim.Callback=...
                 {@OnPressed_StartSimulationButton};
+            
+            gui.ed_simtime.Callback={@OnEdited_SimulationTab};
+            gui.ed_regstep.Callback={@OnEdited_SimulationTab};
 
             %% Tab 4
             gui.btn_pause.Callback=...
@@ -570,6 +622,13 @@ function main()
         name=spnstr(gui.spn_generalconfig);
         CreateOrUpdateGeneralConfig(name);
     end
+    function OnSelectedItem_GeneralConfigSpinner(~,~)
+        UpdateTab1();
+    end
+    function OnPressed_DeleteGeneralConfig(~,~)
+        name=spnstr(gui.spn_generalconfig);
+        DeleteGeneralConfig(name);
+    end
     function OnChecked_SaveVideoCheckbox(src,~)
         SetGeneralTabUpdateState(false);
         enable=onoff(src.Value);
@@ -583,10 +642,6 @@ function main()
     function OnEdited_GeneralTab(~,~)
         SetGeneralTabUpdateState(false);
     end
-    function OnPressed_DeleteGeneralConfig(~,~)
-        name=spnstr(gui.spn_generalconfig);
-        DeleteGeneralConfig(name);
-    end
     function OnSelectedItem_ActuatorsSpinner(~,~)
         SetGeneralTabUpdateState(false);
         name=spnstr(gui.spn_actuators);
@@ -596,9 +651,6 @@ function main()
         SetGeneralTabUpdateState(false);
         name=spnstr(src);
         UpdateCond0Data(name);
-    end
-    function OnSelectedItem_GeneralConfigSpinner(~,~)
-        UpdateTab1();
     end
     function OnSelectedItem_SpacecraftSpinner(src,~)
         SetGeneralTabUpdateState(false);
@@ -627,7 +679,17 @@ function main()
 
         operator2=spnstr(gui.spn_attitudesequenceconditionoperator2);
 
-        condition=CreateScenarioElementCondition(condition_name1,operator1,condition_name2,operator2,condition_name3);
+        e1=strcmp(condition_name1,' ');
+        e2=strcmp(condition_name2,' ');
+        e3=strcmp(condition_name3,' ');
+        
+        if e2
+            condition=CreateScenarioElementCondition(condition_name1);
+        elseif e3
+            condition=CreateScenarioElementCondition(condition_name1,operator1,condition_name2);
+        else
+            condition=CreateScenarioElementCondition(condition_name1,operator1,condition_name2,operator2,condition_name3);
+        end
 
         law_name=spnstr(gui.spn_attitudesequencelaw);
         param=GetLawParam(law_name,false);
@@ -762,6 +824,26 @@ function main()
     end
 
     % Tab 3
+    function OnPressed_CreateSimulationConfig(~,~)
+        name=gui.ed_createsimulationconfig.String;
+        if ~ismember(name,data.configs.simulation.keys)
+            CreateOrUpdateSimulationConfig(name);
+        end
+    end
+    function OnPressed_UpdateSimulationConfig(~,~)
+        name=spnstr(gui.spn_simulationconfig);
+        CreateOrUpdateSimulationConfig(name);
+    end
+    function OnSelectedItem_SimulationConfigSpinner(~,~)
+        UpdateTab3();
+    end
+    function OnPressed_DeleteSimulationConfig(~,~)
+        name=spnstr(gui.spn_simulationconfig);
+        DeleteSimulationConfig(name);
+    end
+    function OnEdited_SimulationTab(~,~)
+        SetSimulationTabUpdateState(false);
+    end
     function OnPressed_StartSimulationButton(~,~)
         cla(gui.ax_anim);
         cla(gui.ax_gndtrk);
@@ -772,8 +854,9 @@ function main()
         
         gui.tab4.Parent=gui.tabgp;
         gui.tabgp.SelectedTab=gui.tab4;
-        data.general_config=GetGeneralConfigFromGUI('');
-        data.sim_time=str2double(gui.ed_simtime.String);
+        data.general=GetGeneralConfigFromGUI('');
+        data.attitude=GetAttitudeConfigFromGUI('');
+        data.simulation=GetSimulationConfigFromGUI('');
         StartSimulation();
     end
 
@@ -887,6 +970,18 @@ function main()
             UpdateTab1();
         end
     end
+    function CreateOrUpdateGeneralConfig(name)
+        if ~isempty(name) && ~strcmp(name,'Default')
+            SetGeneralTabUpdateState(true);
+            new_general_config=GetGeneralConfigFromGUI(name);
+            data.configs.general(name)=new_general_config;
+            gui.spn_generalconfig.String=data.configs.general.keys;
+            strfnd(gui.spn_generalconfig,name);
+            configs=data.configs.general;
+            save('configs/general_configs.mat','configs');
+            UpdateTab1();
+        end
+    end
     function config=GetGeneralConfigFromGUI(name)
         actuators=containers.Map;
         actuators_name=spnstr(gui.spn_actuators);
@@ -909,6 +1004,7 @@ function main()
             'attitude_hchap',[str2double(gui.ed_attitudehchapx.String);...
                               str2double(gui.ed_attitudehchapy.String);...
                               str2double(gui.ed_attitudehchapz.String)],...
+            'anim_fps',str2double(spnstr(gui.spn_animfps)),...
             'anim_animation_speed',str2double(gui.ed_animspeed.String),...
             'anim_spacecraft_size',str2double(gui.ed_spacecraftsize.String),...
             'anim_arrow_len',str2double(gui.ed_arrowlen.String),...
@@ -947,20 +1043,14 @@ function main()
         set(gui.ed_spacecraftdimz,'String',num2str(spacecraft.dim(3)));
         set(gui.ed_spacecraftweight,'String',num2str(spacecraft.m));
     end
-    function CreateOrUpdateGeneralConfig(name)
-        if ~isempty(name) && ~strcmp(name,'Default')
-            SetGeneralTabUpdateState(true);
-            new_general_config=GetGeneralConfigFromGUI(name);
-            data.configs.general(name)=new_general_config;
-            gui.spn_generalconfig.String=data.configs.general.keys;
-            strfnd(gui.spn_generalconfig,name);
-            configs=data.configs.general;
-            save('configs/general_configs.mat','configs');
-            UpdateTab1();
-        end
-    end
 
     % Tab 2
+    function config=GetAttitudeConfigFromGUI(name)
+        global current_conditions current_scenario
+        config=struct('name',name,...
+        'conditions',current_conditions,...
+        'scenario',current_scenario);
+    end
     function CreateOrUpdateAttitudeConfig(name)
         global current_conditions current_scenario
         if ~isempty(name) && ~strcmp(name,'Default')
@@ -1019,10 +1109,8 @@ function main()
             if default
                 param=struct('Base',all_bases_name(1));
             else
-                tab=gui.tbl_attitudesequence;
-                ha=guidata(tab);
-                if isfield(ha,'scenarioelementgui')
-                    scenarioelementgui=ha.scenarioelementgui;
+                if isfield(gui,'scenarioelementgui')
+                    scenarioelementgui=gui.scenarioelementgui;
                     spn=scenarioelementgui('spn_scenarioelementbase');
                     base_name=spnstr(spn);
                     param=struct('Base',base_name);
@@ -1303,7 +1391,53 @@ function main()
     end
 
     % Tab 3
-    
+    function SetSimulationTabUpdateState(updated)
+        if ~updated
+            if strcmp(gui.btn_updategeneralconfig.Enable,'off')
+                gui.btn_updatesimulationconfig.BackgroundColor=[0.94 0.94 0.94];
+                gui.btn_createsimulationconfig.BackgroundColor='red';
+            else
+                gui.btn_createsimulationconfig.BackgroundColor=[0.94 0.94 0.94];
+                gui.btn_updatesimulationconfig.BackgroundColor='red';
+            end
+        else
+            if strcmp(gui.btn_updatesimulationconfig.Enable,'off')
+                gui.btn_updatesimulationconfig.BackgroundColor=[0.94 0.94 0.94];
+                gui.btn_createsimulationconfig.BackgroundColor=[0.94 0.94 0.94];
+            else
+                gui.btn_createsimulationconfig.BackgroundColor=[0.94 0.94 0.94];
+                gui.btn_updatesimulationconfig.BackgroundColor=[0.94 0.94 0.94];
+            end
+        end
+    end
+    function DeleteSimulationConfig(name)
+        if ~strcmp(name, 'Default')
+            remove(data.configs.simulation,name);
+            configs=data.configs.simulation;
+            save('configs/simulation_configs.mat','configs');
+            gui.spn_simulationconfig.String=data.configs.simulation.keys;
+            gui.spn_simulationconfig.Value=find(strcmp(gui.spn_simulationconfig.String,'Default'));
+            UpdateTab3();
+        end
+    end
+    function config=GetSimulationConfigFromGUI(name)
+        simtime=str2double(gui.ed_simtime.String);
+        regstep=str2double(gui.ed_regstep.String);
+        config=struct('name',name,'simtime',simtime,'regstep',regstep);
+    end
+    function CreateOrUpdateSimulationConfig(name)
+        if ~isempty(name) && ~strcmp(name,'Default')
+            SetSimulationTabUpdateState(true);
+            new_simulation_config=GetSimulationConfigFromGUI(name);
+            data.configs.simulation(name)=new_simulation_config;
+            gui.spn_simulationconfig.String=data.configs.simulation.keys;
+            strfnd(gui.spn_simulationconfig,name);
+            configs=data.configs.simulation;
+            save('configs/simulation_configs.mat','configs');
+            UpdateTab3();
+        end
+    end
+
     % Tab 4
     
     %% Interface update
@@ -1344,6 +1478,8 @@ function main()
 
         anim_animation_speed=config.anim_animation_speed;
         gui.ed_animspeed.String=num2str(anim_animation_speed);
+        anim_fps=config.anim_fps;
+        strfnd(gui.spn_animfps,num2str(anim_fps));
         anim_spacecraft_size=config.anim_spacecraft_size;
         gui.ed_spacecraftsize.String=num2str(anim_spacecraft_size);
         anim_arrow_len=config.anim_arrow_len;
@@ -1422,19 +1558,33 @@ function main()
         UpdateScenarioElementDefinitionParameters(1);
     end
     function UpdateTab3()
+        config_name=spnstr(gui.spn_simulationconfig);
+        if strcmp(config_name,'Default')
+            gui.btn_updatesimulationconfig.Enable='off';
+            gui.btn_deletesimulationconfig.Enable='off';
+        else
+            gui.btn_updatesimulationconfig.Enable='on';
+            gui.btn_deletesimulationconfig.Enable='on';
+        end
+        config=data.configs.simulation(config_name);
+        simtime=config.simtime;
+        gui.ed_simtime.String=num2str(simtime);
+        regstep=config.regstep;
+        gui.ed_regstep.String=num2str(regstep);
     end
     function UpdateTab4()
     end
 
     %% Menu callbacks
     function OnExit(~,~)
-        stopTimer();
+        if isfield(gui,'timer') && ~isempty(gui.timer)
+            gui.timer = [];
+        end
         delete(gui.window);
-    end % onExit
+    end
 
     %% Simulation
     function StartSimulation()
-        global current_scenario;
 
         %% Imports
         data.constants.igrf11300km=load('igrf11-300km.mat');
@@ -1444,20 +1594,22 @@ function main()
         fprintf("Setting up model...\n\n")
 
         %% Gather GUI Data
-        general_config=data.general_config;
+        general=data.general;
+        attitude=data.attitude;
+        simulation=data.simulation;
         
-        spacecraft_name=general_config.spacecraft_name;
+        spacecraft_name=general.spacecraft_name;
         spacecraft=data.spacecrafts(spacecraft_name);
         
-        cond0_name=general_config.cond0_name;
+        cond0_name=general.cond0_name;
         cond0=data.initial_conditions_sets(cond0_name);
         
-        r_ratio=general_config.r_ratio;
+        r_ratio=general.r_ratio;
         
-        sim_time=data.sim_time;   
+        sim_time=simulation.simtime;   
 
         %% Actuators
-        actuators=general_config.actuators;
+        actuators=general.actuators;
         name=actuators('name');
         if strcmp(name,'Reaction wheels') || strcmp(name,'Mix')
             parameters=actuators('parameters');
@@ -1471,8 +1623,8 @@ function main()
         end
 
         %% Control parameters
-        data.constants.w_chap=general_config.attitude_wchap; %angular velocity equilibrium [rad/s]
-        data.constants.h_chap=general_config.attitude_hchap; %wheels angular momentum equilibrium [kg*m2/s]
+        data.constants.w_chap=general.attitude_wchap; %angular velocity equilibrium [rad/s]
+        data.constants.h_chap=general.attitude_hchap; %wheels angular momentum equilibrium [kg*m2/s]
         data.constants.Tc=0.2; %control horizon [s]
 
         %% Satellite and orbit properties
@@ -1557,14 +1709,14 @@ function main()
         A_data=[]; %variable LQR gain
         B_data=[]; %variable LQR gain
 
-        scenario=current_scenario;
+        scenario=attitude.scenario;
         scenario_keys=scenario.keys;
         if isempty(scenario_keys)
             error('The current attitude scenario is empty. Please add an element in the Attitude tab.')
         end
 
-        dt_reg=1;
-        t_reg=0:dt_reg:sim_time;
+        regstep=simulation.regstep;
+        t_reg=0:regstep:sim_time;
         step=1;
         for t_r=t_reg 
             [~,idx_orb]=min(abs(t_orb-t_r));
@@ -1593,7 +1745,7 @@ function main()
                 element_tmp=scenario(int2str(i));
                 complex_condition=element_tmp.Condition;
                 
-                condition_check=CheckComplexCondition(complex_condition,state);
+                condition_check=CheckComplexCondition(complex_condition,data,state);
                 if condition_check
                     element=element_tmp;
                     break;
@@ -1685,7 +1837,8 @@ function main()
         Rio_orb=orbit.Rio_orb;
         
         c=data.constants;
-        sim_time=data.sim_time;
+        sim_time=data.simulation.simtime;
+        dt_anim=1/data.general.anim_fps;
         
         Rob_data_file=load('data/Rob_data.mat');
         Rob_data=Rob_data_file.Rob_data;
@@ -1701,7 +1854,6 @@ function main()
         Ribs=zeros(3,3*n_step_sim); %rotation matrix inertial to body (Simulink samples)
         Ss=zeros(16,3*n_step_sim); %spacecrafts (Simulink samples)
         
-        dt_anim=1;
         step=1;
         t_anim=0:dt_anim:sim_time;
         n_step_anim=length(t_anim);
@@ -1716,8 +1868,8 @@ function main()
 
             %Gather data
             pos=pos_orb(:,idx_orb);
-            Rio=Rio_orb(:,:,idx_orb)';
             poss(:,step)=pos;
+            Rio=Rio_orb(:,:,idx_orb)';
             Rob=Rob_data.Data(:,:,idx_sim);
 
             %Calculate rotation matrix inertial to body
@@ -1725,7 +1877,7 @@ function main()
             Ribs(:,3*step-2:3*step)=Rib;
 
             %Pre-create spacecraft
-            S=create_spacecraft(pos, Rib, c.dim*data.general_config.anim_spacecraft_size);
+            S=create_spacecraft(pos, Rib, c.dim*data.general.anim_spacecraft_size);
             Ss(:,3*step-2:3*step)=S;
             
             eul_ob=rotm2eul(Rob);
@@ -1738,9 +1890,9 @@ function main()
 
         %% Animate
 
-        if (data.general_config.anim_save_video)
-            video = VideoWriter(data.general_config.anim_video_name,data.general_config.anim_video_format);
-            video.FrameRate = data.general_config.anim_video_frame_rate;
+        if (data.general.anim_save_video)
+            video = VideoWriter(data.general.anim_video_name,data.general.anim_video_format);
+            video.FrameRate = data.general.anim_video_frame_rate;
             video.Quality=90;
             gui.video=video;
             open(video)
@@ -1781,7 +1933,7 @@ function main()
     end
 
     function startTimer(restart)
-        global gndtrk_line eulang_line last_anim_step anim_step pos old_pos bases_plt earth lines spacecraft arrows lines2 arrows2;
+        global gndtrk_pos lon_lines eulang_line last_anim_step anim_step pos old_pos bases_plt earth lines spacecraft lines2;
         
         anim=data.anim;
         t_anim=anim.t_anim;
@@ -1791,10 +1943,11 @@ function main()
         phi_orb=orbit.phi_orb;
         theta_orb=orbit.theta_orb;
         n_step_anim=length(t_anim);
-        config=data.general_config;
+        general=data.general;
         poss=anim.poss;
         c=data.constants;
         w_e_deg=c.w_e_deg;
+        anim_fps=data.general.anim_fps;
         
         if ~restart
             cla(gui.ax_anim);
@@ -1804,31 +1957,46 @@ function main()
             
             %% Orbital to body Euler angles plot
             axes(gui.ax_eulang);
-            plot(gui.ax_eulang,t_anim,anim.phi_ob,t_anim,anim.theta_ob,t_anim,anim.psi_ob);
-            hold on       
+            plot(gui.ax_eulang,...
+                t_anim,anim.phi_ob,...
+                t_anim,anim.theta_ob,...
+                t_anim,anim.psi_ob);
+            hold on
             title('Euler angles between orbital and body frames');
-            xlabel('Time (s)');
-            ylabel('Angle (°)');
-            hold on     
-            %legend('phi','theta','psi','Location','NorthOutside','Orientation','horizontal','Box','off');
+            xlabel(gui.ax_eulang,'Time (s)');
+            ylabel(gui.ax_eulang,'Angle (°)');
+            %legend(gui.ax_eulang,'phi','theta','psi','Box','off');
+            hold on
 
-            %% Orbit plot
-
+            %% Ground track plot
             axes(gui.ax_gndtrk);
-
-            lat = zeros(n_step_orb,1);
-            lon = zeros(n_step_orb,1);
-
+            sat_lats = zeros(n_step_orb,1);
+            sat_lons = zeros(n_step_orb,1);
             for j=1:n_step_orb
-                lon(j)=180/pi*phi_orb(1,j);
-                lat(j)=180/pi*(pi/2-theta_orb(1,j));
+                sat_lats(j)=180/pi*(pi/2-theta_orb(1,j));
+                sat_lons(j)=180/pi*phi_orb(1,j)-w_e_deg*t_orb(j);
             end
-
-            plot(gui.ax_gndtrk,lon, lat);
-
-            title('Ground track of the ISS');
-            xlabel('Longitude (rad)');
-            ylabel('Latitude (rad)');
+            geoplot(gui.ax_gndtrk,sat_lats,sat_lons,'r-','LineWidth',1)
+            hold on
+            geobasemap streets
+            hold on
+            geolimits(gui.ax_gndtrk,[-90 90],[0 360])
+            hold on
+            
+            bas=data.bases.values;
+            n_bas=length(bas);
+            bas_names = strings(n_bas,1);
+            bas_lats = zeros(n_bas,1);
+            bas_lons = zeros(n_bas,1);
+            for j=1:n_bas
+                b=bas{j};
+                bas_lons(j,1)=b.lon*180/pi;
+                bas_lats(j,1)=b.lat*180/pi;
+                bas_names(j,1)=b.name;
+            end
+            geoplot(gui.ax_gndtrk,bas_lats,bas_lons,'r.','MarkerSize',8);
+            hold on
+            text(gui.ax_gndtrk,bas_lats,bas_lons,bas_names)
             hold on
         end
         
@@ -1837,17 +2005,19 @@ function main()
             anim_step=1;
         end
         
-        gui.timer = timer('Name','MyTimer',             ...
-                        'Period',1,          ... 
+        gui.timer = timer('Name','AnimTimer',             ...
+                        'Period',1/anim_fps,          ... 
                         'StartDelay',0,                 ... 
                         'TasksToExecute',n_step_anim,           ... 
-                        'ExecutionMode','fixedDelay', ...
-                        'TimerFcn',@TimerStep);
+                        'ExecutionMode','fixedRate', ...
+                        'TimerFcn',{@TimerStep gui},...
+                        'BusyMode','drop');
         tic;
         axes(gui.ax_anim);
+        axis equal tight
         start(gui.timer);
     
-        function TimerStep(~,~)
+        function TimerStep(~,~,gui_)
             % These demos need a window opening
             if (anim_step>n_step_anim)
                 stopTimer();
@@ -1859,17 +2029,13 @@ function main()
             
             if anim_step~=1
                 delete(eulang_line);
-                delete(gndtrk_line);
+                %delete(gndtrk_line);
             end
             
-            eulang_line=xline(gui.ax_eulang,t);
-            hold on
-            [~,idx_orb]=min(abs(t_orb-t));
-            phi=180/pi*phi_orb(1,idx_orb);
-            gndtrk_line=xline(gui.ax_gndtrk,phi);
+            eulang_line=xline(gui_.ax_eulang,t);
             hold on
             
-            title({'IMSAT Simulator',['t=',num2str(t),'s']})
+            title(gui_.ax_anim,{'IMSAT Simulator',['t=',num2str(t),'s']})
             
             origin=poss(:,1);
             if (anim_step==1)
@@ -1877,16 +2043,18 @@ function main()
                 dt=t-0;
                 
                 %Draw Earth
-                earth=draw_earth_spherical();
-                
+                earth=draw_earth_spherical(gui_.ax_anim);
+                draw_lat_lines(gui_.ax_anim);
+            
                 %Draw ECI frame
-                drawframe([0;0;0],eye(3),config.anim_arrow_len, config.anim_line_len);
+                %drawframe([0;0;0],eye(3),general.anim_arrow_len, general.anim_line_len);
+                drawframe(gui_.ax_anim,[0;0;0],eye(3),general.anim_line_len);
 
                 %Draw orbit line
                 for i=2:n_step_anim
                     pos_temp=poss(:,i);
                     old_pos_temp=poss(:,i-1);
-                    plot3([old_pos_temp(1), pos_temp(1)],...
+                    plot3(gui_.ax_anim,[old_pos_temp(1), pos_temp(1)],...
                         [old_pos_temp(2), pos_temp(2)],...
                         [old_pos_temp(3), pos_temp(3)],'c');
                     hold on
@@ -1894,129 +2062,135 @@ function main()
                 
                 %% Axis
                 %Labels
-                xlabel('x') 
-                ylabel('y') 
-                zlabel('z') 
+                xlabel(gui_.ax_anim,'x') 
+                ylabel(gui_.ax_anim,'y') 
+                zlabel(gui_.ax_anim,'z') 
 
-                %Limits
-                lim=config.anim_axis_limit_ratio*norm(origin);
-                Lim=[-lim lim];
-                xlim(Lim)
-                ylim(Lim)
-                zlim(Lim)
             else
                 dt=t-last_t;
                 delete(spacecraft);
-                delete(bases_plt);
                 delete(lines);
                 delete(lines2);
-                delete(arrows);
-                delete(arrows2);
+                delete(bases_plt);
+                delete(lon_lines);
+                delete(gndtrk_pos);
             end
+            
+            %Limits
+            lim=general.anim_axis_limit_ratio*norm(origin);
+            Lim=[-lim lim];
+            xlim(gui_.ax_anim,Lim)
+            ylim(gui_.ax_anim,Lim)
+            zlim(gui_.ax_anim,Lim)
                 
-            function earth=draw_earth_spherical()
-                [X,Y,Z] = sphere;
-                imData = imrotate(imread('earthmap1k.jpg'),180);
-                earth=warp(X,Y,Z,imData);
-                earth.EdgeColor='none';
+            lon_lines=draw_lon_lines(gui_.ax_anim);
+            
+            [~,idx_orb]=min(abs(t_orb-t));
+            lat=180/pi*(pi/2-theta_orb(1,idx_orb));
+            lon=180/pi*phi_orb(1,idx_orb)-w_e_deg*t_orb(idx_orb);
+            gndtrk_pos=geoplot(gui.ax_gndtrk,lat,lon,'bo','MarkerSize',4);
+            hold on
+            
+            function earth=draw_earth_spherical(ax)
+                [X,Y,Z] = sphere(ax,100); 
+                %C = load('borderdata.mat');
+                %for k = 1:246
+                %   [xtmp,ytmp,ztmp] = sph2cart(deg2rad(C.lon{k}),deg2rad(C.lat{k}),R);
+                %   plot3(ax,xtmp,ytmp,ztmp,'k');
+                %end
+                imData = imread('earthmap1k.jpg');
+                earth=surf(X,Y,Z,flipud(imData),...
+                    'FaceColor','texturemap',...
+                    'EdgeColor','none');
                 hold on
             end
             
-            rotate(earth,[0 0 1], w_e_deg*dt);
-            
-            %Draw ECEF frame
-            [arrows2,lines2]=drawframe([0;0;0],Rzyx(0,0,-pi/180*w_e_deg*t),config.anim_arrow_len, config.anim_line_len);
+            function lon_lines=draw_lon_lines(ax)
+                lonspacing = 20; 
+                dtheta=w_e_deg*t*pi/180;
+                [lon1,lat1] = meshgrid(-180:lonspacing:180,linspace(-90,90,300)); 
+                [x1,y1,z1] = sph2cart(lon1*pi/180+dtheta,lat1*pi/180,1); 
+                lon_lines=plot3(ax,x1,y1,z1,'-','color',0.5*[1 1 1]);
+                hold on
+                
+            end
 
+            function lat_lines=draw_lat_lines(ax)
+                latspacing = 10; 
+                [lat2,lon2] = meshgrid(-90:latspacing:90,linspace(-180,180,300)); 
+                [x2,y2,z2] = sph2cart(lon2*pi/180,lat2*pi/180,1); 
+                lat_lines=plot3(ax,x2,y2,z2,'-','color',0.5*[1 1 1]);
+                hold on 
+            end
+            
+            rotate(earth,[0 0 1], w_e_deg*dt);
+                
+            %Draw ECEF frame
+            %[arrows2,lines2]=drawframe([0;0;0],Rzyx(0,0,-pi/180*w_e_deg*t),general.anim_arrow_len, general.anim_line_len);
+            lines2=drawframe(gui_.ax_anim,[0;0;0],Rzyx(0,0,-pi/180*w_e_deg*t), general.anim_line_len);
+            
+            %translate_planisphere=imtranslate(planisphere,[w_e_deg*t*50, 0],'OutputView','full');
+            %imagesc(gui.ax_gndtrk,[0 360], [-90 90], translate_planisphere);
+            
             %% Draw bases
             bases_plt=[];
             bas=data.bases.values;
             for i=1:length(bas)
-                [plt,txt]=draw_base(bas{i},t);
+                [plt,txt]=draw_base(gui_.ax_anim,bas{i},t);
                 bases_plt=[bases_plt plt txt];
             end
             
-            function [plt,txt]=draw_base(base,t)
+            function [plt,txt]=draw_base(ax,base,t)
                 name=base.name;
                 [x,y,z]=base_position(base,t,0,w_e_deg);
-                plt=plot3(x,y,z,'ro', 'MarkerSize', 5);
+                plt=plot3(ax,x,y,z,'ro', 'MarkerSize', 5);
                 hold on
                 [x,y,z]=base_position(base,t,0.3,w_e_deg);
-                txt=text(x,y,z,name);
+                txt=text(ax,x,y,z,name);
                 hold on
             end
             
             %Gather next data
+            old_pos=pos;
             pos=poss(:,anim_step);
-            if (anim_step==1)
-                old_pos=pos;
-            end
             Rib=anim.Ribs(:,3*anim_step-2:3*anim_step);
             S=anim.Ss(:,3*anim_step-2:3*anim_step);
 
             %Display new elements
-            spacecraft=draw_spacecraft(S);
-            [arrows,lines]=drawframe(pos, Rib, config.anim_arrow_len, config.anim_line_len);
-           
-            function plt = draw_spacecraft(S)
-                plt=plot3(S(:,1),S(:,2),S(:,3),'b');
+            spacecraft=draw_spacecraft(gui_.ax_anim,S);
+            %[arrows,lines]=drawframe(pos, Rib, general.anim_arrow_len, general.anim_line_len);
+            lines=drawframe(gui_.ax_anim,pos, Rib, general.anim_line_len);
+            
+            function plt = draw_spacecraft(ax,S)
+                plt=plot3(ax,S(:,1),S(:,2),S(:,3),'b');
                 hold on
             end
 
-            v=plot3([old_pos(1), pos(1)], ...
+            v=plot3(gui_.ax_anim,[old_pos(1), pos(1)], ...
                 [old_pos(2), pos(2)], ...
                 [old_pos(3), pos(3)],'m'); %display travelled distance
             hold on
             v.LineWidth=2;
 
-            if (config.anim_save_video)
+            if (general.anim_save_video)
                 frame=getframe(gcf);
-                writeVideo(gui.video, frame);
+                writeVideo(gui_.video, frame);
             end
 
-            %{
-            pause_time = -1;
-            i=0;
-            while pause_time<0
-                i=i+1;
-                if anim_step+i>length(anim.times)
-                    i=i-1;
-                    break;
-                end
-                dt = anim.times(anim_step+i)-anim.times(anim_step);
-                delay = toc;
-                pause_time = dt/config.anim_animation_speed-delay-timer_period;
-            end
             last_anim_step = anim_step;
-            anim_step = min(anim_step+i,n_data);
-            pause(pause_time);
-        
-            tic
-            %}
-            last_anim_step = anim_step;
-            anim_step = anim_step+config.anim_animation_speed;
+            anim_step = anim_step+general.anim_animation_speed;
         end
         
-         function [arrows, lines] = drawframe(center, R, arrow_len, line_len)
-            ux=center + arrow_len*R'*[1;0;0];
-            uy=center + arrow_len*R'*[0;1;0];
-            uz=center + arrow_len*R'*[0;0;1];
-            plt1=arrow3(center', ux', 'r');
-            hold on    
-            plt2=arrow3(center', uy', 'g');
-            hold on    
-            plt3=arrow3(center', uz', 'b');
-            hold on    
-            
+        function lines = drawframe(ax,center, R, line_len)
             ux=center + line_len*R'*[1;0;0];
             uy=center + line_len*R'*[0;1;0];
             uz=center + line_len*R'*[0;0;1];
-            pltx=plot3([center(1), ux(1)],[center(2), ux(2)],[center(3), ux(3)],'r');
+            pltx=plot3(ax,[center(1), ux(1)],[center(2), ux(2)],[center(3), ux(3)],'r');
             hold on
-            plty=plot3([center(1), uy(1)],[center(2), uy(2)],[center(3), uy(3)],'g');
+            plty=plot3(ax,[center(1), uy(1)],[center(2), uy(2)],[center(3), uy(3)],'g');
             hold on
-            pltz=plot3([center(1), uz(1)],[center(2), uz(2)],[center(3), uz(3)],'b');
+            pltz=plot3(ax,[center(1), uz(1)],[center(2), uz(2)],[center(3), uz(3)],'b');
             hold on
-            arrows=[plt1 plt2 plt3];
             lines=[pltx plty pltz];
         end
     end
