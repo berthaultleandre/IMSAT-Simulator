@@ -1,7 +1,8 @@
-function [A,B,C,D] = state_space_wheels_only_2(q_chap,data)
+function [A,B,C,D] = GetSpacecraftStateSpace(q_chap,data)
 c=data.constants;
 I=c.I;
 w_0=c.w_0;
+b_b_avg=c.b_b_avg;
 
 ctrl=data.control;
 w_chap=ctrl.w_chap;
@@ -30,8 +31,23 @@ Agg=-1/2*skew(w_chap');
 Agh=zeros(3,3);
 
 A = [Aww Awg Awh;Agw Agg Agh;zeros(3,9)];
-B = [inv(I);zeros(3);-eye(3)];
+
+%Bm=I_inv*skew(b_b_avg)*skew(b_b_avg)/norm(b_b_avg)^2; %- ?
+Bm=-I_inv*skew(b_b_avg);
+B_wheels=[inv(I);zeros(3);-eye(3)];
+B_magnet=[Bm;zeros(3);zeros(3)];
+
+name=data.general.actuators('name');
+if strcmp(name,'Reaction wheels')
+    B = B_wheels;
+elseif strcmp(name,'Magnetorquers')
+    B = B_magnet;
+elseif strcmp(name,'Mix')
+    B = [B_magnet B_wheels];
+end
+    
 C = eye(9);
 D = zeros(size(C,1),size(B,2));
+
 end
 

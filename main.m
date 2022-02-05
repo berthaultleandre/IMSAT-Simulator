@@ -1,4 +1,5 @@
 function main()
+    
     %% Main
     
     warning('off','all')
@@ -1766,20 +1767,21 @@ function main()
 
             %Compute new state space system
             %[A,B,C,D]=state_space_wheels_only(g_chap, w_chap, h_chap, I, w_0);
-            [A,B,C,D]=state_space_wheels_only_2(q_chap, data);
+            [A,B,C,D]=GetSpacecraftStateSpace(q_chap, data);
             %Compute new LQR gain
             %Tc=data.control.Tc;
             %Gc=gramt(A,B,Tc);
             %Q=1/Tc*inv(Gc);
             Q=eye(size(A,1))*1e-3;
             R=eye(size(B,2));
-            nj=size(A,1);
             K_lqr=lqr(A,B,Q,R);
 
             q_chap_data(:,step)=q_chap;
             A_data(:,(step-1)*9+1:step*9)=A;
-            B_data(:,(step-1)*3+1:step*3)=B;
-            K_data(:,(step-1)*nj+1:step*nj)=K_lqr;
+            n_a=size(A,2);
+            n_b=size(B,2);
+            B_data(:,(step-1)*n_b+1:step*n_b)=B;
+            K_data(:,(step-1)*n_a+1:step*n_a)=K_lqr;
             
             step=step+1;
         end
@@ -1917,14 +1919,12 @@ function main()
         
         startTimer(false);
     end
-
     function pauseTimer()
         if isfield(gui,'timer') && ~isempty(gui.timer)
             stop(gui.timer);
             gui.timer = [];
         end
     end
-
     function stopTimer()
         gui.btn_stop.Selected='on';
         set(gui.btn_stop, 'String', 'Restart');
@@ -1935,7 +1935,6 @@ function main()
         end
         pauseTimer();
     end
-
     function startTimer(restart)
         global gndtrk_pos lon_lines eulang_line last_anim_step anim_step pos old_pos bases_plt earth lines spacecraft lines2;
         
