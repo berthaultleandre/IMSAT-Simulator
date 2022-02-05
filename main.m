@@ -1609,23 +1609,26 @@ function main()
         sim_time=simulation.simtime;   
 
         %% Actuators
+        data.actuators=struct();
         actuators=general.actuators;
         name=actuators('name');
         if strcmp(name,'Reaction wheels') || strcmp(name,'Mix')
             parameters=actuators('parameters');
-            data.constants.omega_w_0 = [0,0,0]';
-            data.constants.h_0=[0,0,0]';
-            data.constants.tau_w=1;
-            data.constants.num_wheels=parameters.number_of_wheels;
+            data.actuators.wheels=struct();
+            data.actuators.wheels.omega_w_0 = [0,0,0]';
+            data.actuators.wheels.h_0=[0,0,0]';
+            data.actuators.wheels.tau_w=1;
+            data.actuators.wheels.num_wheels=parameters.number_of_wheels;
             wheels_config=data.wheels_configurations(parameters.wheels_config);
-            data.constants.W=wheels_config.distr_matrix;
-            data.constants.h_w_max=0.03;
+            data.actuators.wheels.W=wheels_config.distr_matrix;
+            data.actuators.wheels.h_w_max=0.03;
         end
 
         %% Control parameters
-        data.constants.w_chap=general.attitude_wchap; %angular velocity equilibrium [rad/s]
-        data.constants.h_chap=general.attitude_hchap; %wheels angular momentum equilibrium [kg*m2/s]
-        data.constants.Tc=0.2; %control horizon [s]
+        data.control=struct();
+        data.control.w_chap=general.attitude_wchap; %angular velocity equilibrium [rad/s]
+        data.control.h_chap=general.attitude_hchap; %wheels angular momentum equilibrium [kg*m2/s]
+        data.control.Tc=0.2; %control horizon [s]
 
         %% Satellite and orbit properties
         data.constants.eul_o_b_0_deg = cond0.eul_o_b_0_deg;
@@ -1719,8 +1722,6 @@ function main()
         t_reg=0:regstep:sim_time;
         step=1;
         for t_r=t_reg 
-            [~,idx_orb]=min(abs(t_orb-t_r));
-            t_o=t_orb(idx_orb);
             
             %Display percentage
             new_per=floor(t_r/sim_time*100);
@@ -1730,29 +1731,31 @@ function main()
                 lineLength=fprintf("%d%%\n",per);
             end
 
-            %Gather orbital data
+            %Gather state data
             state=struct();
             state.t=t_r;
+            [~,idx_orb]=min(abs(t_orb-t_r));
             state.Rio=Rio_orb(:,:,idx_orb);
             state.pos=pos_orb(:,idx_orb);
             state.phi=phi_orb(1,idx_orb);
             state.theta=theta_orb(1,idx_orb);
             state.longitude=180/pi*state.phi;
-            state.latitude=180-180/pi*state.theta;
+            state.latitude=90-180/pi*state.theta;
 
             %Attitude control scenario
+            element_found=false;
             for i=1:length(scenario_keys)
                 element_tmp=scenario(int2str(i));
                 complex_condition=element_tmp.Condition;
-                
                 condition_check=CheckComplexCondition(complex_condition,data,state);
                 if condition_check
+                    element_found=true;
                     element=element_tmp;
                     break;
                 end
             end
 
-            if ~exist('element','var')
+            if ~element_found
                 element=scenario(int2str(length(scenario)));
             end
             
@@ -1764,18 +1767,20 @@ function main()
             %Compute new state space system
             %[A,B,C,D]=state_space_wheels_only(g_chap, w_chap, h_chap, I, w_0);
             [A,B,C,D]=state_space_wheels_only_2(q_chap, data);
-            A_data(:,(step-1)*9+1:step*9)=A;
-            B_data(:,(step-1)*3+1:step*3)=B;
             %Compute new LQR gain
+            %Tc=data.control.Tc;
             %Gc=gramt(A,B,Tc);
             %Q=1/Tc*inv(Gc);
-            Q=eye(size(A,1))*0.001;
+            Q=eye(size(A,1))*1e-3;
             R=eye(size(B,2));
             nj=size(A,1);
             K_lqr=lqr(A,B,Q,R);
 
             q_chap_data(:,step)=q_chap;
+            A_data(:,(step-1)*9+1:step*9)=A;
+            B_data(:,(step-1)*3+1:step*3)=B;
             K_data(:,(step-1)*nj+1:step*nj)=K_lqr;
+            
             step=step+1;
         end
 
@@ -1792,7 +1797,6 @@ function main()
         data.orbit.Rio_orb=Rio_orb;
         data.orbit.t_orb=t_orb;
         
-        data.control=struct();
         data.control.A_data=A_data;
         data.control.B_data=B_data;
         data.control.K_data=K_data;
@@ -1980,7 +1984,7 @@ function main()
             hold on
             geobasemap streets
             hold on
-            geolimits(gui.ax_gndtrk,[-90 90],[0 360])
+            geolimits(gui.ax_gndtrk,[-90 90],[-180 180])
             hold on
             
             bas=data.bases.values;
@@ -2008,17 +2012,19 @@ function main()
         gui.timer = timer('Name','AnimTimer',             ...
                         'Period',1/anim_fps,          ... 
                         'StartDelay',0,                 ... 
-                        'TasksToExecute',n_step_anim,           ... 
+                        'TasksToExecute',Inf,           ... 
                         'ExecutionMode','fixedRate', ...
                         'TimerFcn',{@TimerStep gui},...
                         'BusyMode','drop');
         tic;
         axes(gui.ax_anim);
         axis equal tight
+        grid off
         start(gui.timer);
     
         function TimerStep(~,~,gui_)
-            % These demos need a window opening
+            
+            %Check if timer is ended
             if (anim_step>n_step_anim)
                 stopTimer();
                 return;
@@ -2029,7 +2035,6 @@ function main()
             
             if anim_step~=1
                 delete(eulang_line);
-                %delete(gndtrk_line);
             end
             
             eulang_line=xline(gui_.ax_eulang,t);

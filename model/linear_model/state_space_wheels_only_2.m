@@ -1,9 +1,11 @@
 function [A,B,C,D] = state_space_wheels_only_2(q_chap,data)
 c=data.constants;
-w_chap=c.w_chap;
-h_chap=c.h_chap;
 I=c.I;
 w_0=c.w_0;
+
+ctrl=data.control;
+w_chap=ctrl.w_chap;
+h_chap=ctrl.h_chap;
 
 q4_chap=q_chap(4);
 g_chap=q_chap(1:3);
