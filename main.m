@@ -488,29 +488,35 @@ function main()
             gui.layout4 = uix.VBox('Parent', gui.tab4, 'Spacing', 3);
 
             gui.layout41 = uix.HBox('Parent', gui.layout4, 'Spacing', 3, 'Padding', 100);
+            
+            gui.layout411 = uix.VBox('Parent', gui.layout41, 'Spacing', 3);
+            
+            gui.layout4111 = uix.HBox('Parent',gui.layout411,'Spacing',3);
+            
             axis vis3d
-            gui.ax_anim=axes(gui.layout41);  
-            gui.ax_anim.Position=[0.25 0.25 0.5 0.5];
+            gui.ax_anim=axes(gui.layout4111);  
+            %gui.ax_anim.Position=[0.25 0.25 0.5 0.5];
             rotate3d on
             hManager = uigetmodemanager(gui.window);
             hManager.CurrentMode.ModeStateData.textState = 0;
             
-            gui.layout411 = uix.VBox('Parent', gui.layout41, 'Spacing', 3);
+            gui.layout4112 = uix.HButtonBox('Parent',gui.layout411,'Spacing',3);
 
-            gui.ax_gndtrk=geoaxes(gui.layout411);
-
-            gui.ax_eulang=axes(gui.layout411);
-
-            set(gui.layout41,'Widths',[-1 -1]);
+            gui.btn_pauseresume=new_button(gui.layout4112,'Pause');
+            gui.btn_pauseresume.Enable='off';
+            gui.btn_startstop=new_button(gui.layout4112,'Start');
+            gui.btn_startstop.Enable='off';
             
-            gui.layout42 = uix.HButtonBox('Parent',gui.layout4,'Spacing',3);
+            set(gui.layout411,'Heights',[-1 25]);
+            
+            gui.layout412 = uix.VBox('Parent', gui.layout41, 'Spacing', 3);
 
-            gui.btn_pause=new_button(gui.layout42,'Pause');
-            gui.btn_pause.Enable='off';
-            gui.btn_stop=new_button(gui.layout42,'Stop');
-            gui.btn_stop.Enable='off';
+            gui.ax_gndtrk=geoaxes(gui.layout412);
 
-            gui.layout4.Heights=[-4 -1];
+            gui.ax_eulang=axes(gui.layout412);
+
+            set(gui.layout41,'Widths',[-2 -1]);
+           
         end
         
         function CreateControls()
@@ -604,10 +610,10 @@ function main()
             gui.ed_regstep.Callback={@OnEdited_SimulationTab};
 
             %% Tab 4
-            gui.btn_pause.Callback=...
-                {@OnPressed_PauseAnimationButton};
-            gui.btn_stop.Callback=...
-                {@OnPressed_StopAnimationButton};
+            gui.btn_pauseresume.Callback=...
+                {@OnPressed_PauseResumeAnimationButton};
+            gui.btn_startstop.Callback=...
+                {@OnPressed_StartStopAnimationButton};
         end
     end
 
@@ -862,24 +868,26 @@ function main()
     end
 
     % Tab 4
-    function OnPressed_PauseAnimationButton(src,~)
+    function OnPressed_PauseResumeAnimationButton(src,~)
         if strcmpi(get(src, 'String'),'Resume')
             set(src, 'String', 'Pause');
-            startTimer(true);
+            StartAnimation(true);
         else
             set(src, 'String', 'Resume');
-            pauseTimer();
+            PauseTimer();
         end
     end
-    function OnPressed_StopAnimationButton(src,~)
-        if strcmpi(get(src, 'String'),'Restart')
+    function OnPressed_StartStopAnimationButton(src,~)
+        if strcmpi(get(src, 'String'),'Start') || strcmpi(get(src, 'String'),'Restart')
             set(src, 'String', 'Stop');
-            gui.layout4.Visible='off';
-            StartAnimation();
+            gui.btn_pauseresume.Enable='on';
+            set(gui.btn_pauseresume, 'String', 'Pause');
+            StartAnimation(false);
         else
             set(src, 'String', 'Restart');
-            stopTimer();
-            set(gui.btn_pause,'Enable','off'); 
+            StopTimer();
+            set(gui.btn_pauseresume,'Enable','off'); 
+            set(gui.btn_pauseresume, 'String', 'Pause');
         end
     end
 
@@ -1832,10 +1840,9 @@ function main()
     end
 
     %% Animation
-    function StartAnimation()
+    function InitAnimation()
         %% Init
-        fprintf("Simulation ended successfully!\n\n");
-        fprintf("Starting animation...\n\n");
+        fprintf("Initializing animation...\n\n");
 
         orbit=data.orbit;
         t_orb=orbit.t_orb;
@@ -1913,36 +1920,34 @@ function main()
         data.anim.theta_ob=theta_ob;
         data.anim.psi_ob=psi_ob;
         
-        gui.btn_pause.Enable='on';
-        gui.btn_stop.Enable='on';
+        gui.btn_pauseresume.Enable='off';
+        gui.btn_startstop.Enable='on';
         gui.layout4.Visible='on';
         
-        startTimer(false);
+        InitPlots();
     end
-    function pauseTimer()
-        if isfield(gui,'timer') && ~isempty(gui.timer)
-            stop(gui.timer);
-            gui.timer = [];
-        end
+    function InitPlots()
+        global anim_step last_anim_step
+        cla(gui.ax_anim);
+        cla(gui.ax_gndtrk);
+        cla(gui.ax_eulang);
+        gui.ax_anim.Title.String='';
+
+        PlotEulerAnglesOrbitalToBody();
+
+        PlotGroundTrack();
+
+        last_anim_step=1;
+        anim_step=1; 
     end
-    function stopTimer()
-        gui.btn_stop.Selected='on';
-        set(gui.btn_stop, 'String', 'Restart');
-        gui.btn_pause.Enable='off';
-        set(gui.btn_pause, 'String', 'Pause');
-        if isfield(gui,'video')
-            close(gui.video);
-        end
-        pauseTimer();
-    end
-    function startTimer(restart)
-        global gndtrk_pos lon_lines eulang_line last_anim_step anim_step pos old_pos bases_plt earth lines spacecraft lines2;
+    function StartAnimation(restart)
+        global gndtrk_pos lon_lines eulang_line bases_plt earth spacecraft;
+        global anim_step last_anim_step pos old_pos lines lines2;
         
         anim=data.anim;
         t_anim=anim.t_anim;
         orbit=data.orbit;
         t_orb=orbit.t_orb;
-        n_step_orb=length(t_orb);
         phi_orb=orbit.phi_orb;
         theta_orb=orbit.theta_orb;
         n_step_anim=length(t_anim);
@@ -1953,106 +1958,72 @@ function main()
         anim_fps=data.general.anim_fps;
         
         if ~restart
-            cla(gui.ax_anim);
-            cla(gui.ax_gndtrk);
-            cla(gui.ax_eulang);
-            gui.ax_anim.Title.String='';
+           InitPlots();
+        end
             
-            %% Orbital to body Euler angles plot
-            axes(gui.ax_eulang);
-            plot(gui.ax_eulang,...
-                t_anim,anim.phi_ob,...
-                t_anim,anim.theta_ob,...
-                t_anim,anim.psi_ob);
-            hold on
-            title('Euler angles between orbital and body frames');
-            xlabel(gui.ax_eulang,'Time (s)');
-            ylabel(gui.ax_eulang,'Angle (°)');
-            %legend(gui.ax_eulang,'phi','theta','psi','Box','off');
-            hold on
+        StartTimer(); 
+        
+        function StartTimer()
+            gui.timer = timer('Name','AnimTimer',             ...
+                            'Period',1/anim_fps,          ... 
+                            'StartDelay',0,                 ... 
+                            'TasksToExecute',Inf,           ... 
+                            'ExecutionMode','fixedRate', ...
+                            'TimerFcn',{@TimerStep gui},...
+                            'BusyMode','drop');
 
-            %% Ground track plot
-            axes(gui.ax_gndtrk);
-            sat_lats = zeros(n_step_orb,1);
-            sat_lons = zeros(n_step_orb,1);
-            for j=1:n_step_orb
-                sat_lats(j)=180/pi*(pi/2-theta_orb(1,j));
-                sat_lons(j)=180/pi*phi_orb(1,j)-w_e_deg*t_orb(j);
-            end
-            geoplot(gui.ax_gndtrk,sat_lats,sat_lons,'r-','LineWidth',1)
-            hold on
-            geobasemap streets
-            hold on
-            geolimits(gui.ax_gndtrk,[-90 90],[-180 180])
-            hold on
+            axes(gui.ax_anim);
+            axis equal tight
+            grid off
             
-            bas=data.bases.values;
-            n_bas=length(bas);
-            bas_names = strings(n_bas,1);
-            bas_lats = zeros(n_bas,1);
-            bas_lons = zeros(n_bas,1);
-            for j=1:n_bas
-                b=bas{j};
-                bas_lons(j,1)=b.lon*180/pi;
-                bas_lats(j,1)=b.lat*180/pi;
-                bas_names(j,1)=b.name;
-            end
-            geoplot(gui.ax_gndtrk,bas_lats,bas_lons,'r.','MarkerSize',8);
-            hold on
-            text(gui.ax_gndtrk,bas_lats,bas_lons,bas_names)
-            hold on
+            start(gui.timer);
+
+            
         end
-        
-        if (~restart)
-            last_anim_step=1;
-            anim_step=1;
+        function lines = DrawFrame(ax,center, R, line_len)
+            ux=center + line_len*R'*[1;0;0];
+            uy=center + line_len*R'*[0;1;0];
+            uz=center + line_len*R'*[0;0;1];
+            pltx=plot3(ax,[center(1), ux(1)],[center(2), ux(2)],[center(3), ux(3)],'r');
+            hold on
+            plty=plot3(ax,[center(1), uy(1)],[center(2), uy(2)],[center(3), uy(3)],'g');
+            hold on
+            pltz=plot3(ax,[center(1), uz(1)],[center(2), uz(2)],[center(3), uz(3)],'b');
+            hold on
+            lines=[pltx plty pltz];
         end
-        
-        gui.timer = timer('Name','AnimTimer',             ...
-                        'Period',1/anim_fps,          ... 
-                        'StartDelay',0,                 ... 
-                        'TasksToExecute',Inf,           ... 
-                        'ExecutionMode','fixedRate', ...
-                        'TimerFcn',{@TimerStep gui},...
-                        'BusyMode','drop');
-        tic;
-        axes(gui.ax_anim);
-        axis equal tight
-        grid off
-        start(gui.timer);
-    
         function TimerStep(~,~,gui_)
-            
+
             %Check if timer is ended
             if (anim_step>n_step_anim)
-                stopTimer();
+                StopTimer();
                 return;
             end
-            
+
             t=t_anim(anim_step);
             last_t=t_anim(last_anim_step);
-            
+
             if anim_step~=1
                 delete(eulang_line);
             end
-            
+
             eulang_line=xline(gui_.ax_eulang,t);
             hold on
-            
+
             title(gui_.ax_anim,{'IMSAT Simulator',['t=',num2str(t),'s']})
-            
+
             origin=poss(:,1);
             if (anim_step==1)
                 pos=origin;
                 dt=t-0;
-                
+
                 %Draw Earth
                 earth=draw_earth_spherical(gui_.ax_anim);
                 draw_lat_lines(gui_.ax_anim);
-            
+
                 %Draw ECI frame
-                %drawframe([0;0;0],eye(3),general.anim_arrow_len, general.anim_line_len);
-                drawframe(gui_.ax_anim,[0;0;0],eye(3),general.anim_line_len);
+                %DrawFrame([0;0;0],eye(3),general.anim_arrow_len, general.anim_line_len);
+                DrawFrame(gui_.ax_anim,[0;0;0],eye(3),general.anim_line_len);
 
                 %Draw orbit line
                 for i=2:n_step_anim
@@ -2063,7 +2034,7 @@ function main()
                         [old_pos_temp(3), pos_temp(3)],'c');
                     hold on
                 end
-                
+
                 %% Axis
                 %Labels
                 xlabel(gui_.ax_anim,'x') 
@@ -2079,22 +2050,22 @@ function main()
                 delete(lon_lines);
                 delete(gndtrk_pos);
             end
-            
+
             %Limits
             lim=general.anim_axis_limit_ratio*norm(origin);
             Lim=[-lim lim];
             xlim(gui_.ax_anim,Lim)
             ylim(gui_.ax_anim,Lim)
             zlim(gui_.ax_anim,Lim)
-                
+
             lon_lines=draw_lon_lines(gui_.ax_anim);
-            
+
             [~,idx_orb]=min(abs(t_orb-t));
             lat=180/pi*(pi/2-theta_orb(1,idx_orb));
             lon=180/pi*phi_orb(1,idx_orb)-w_e_deg*t_orb(idx_orb);
             gndtrk_pos=geoplot(gui.ax_gndtrk,lat,lon,'bo','MarkerSize',4);
             hold on
-            
+
             function earth=draw_earth_spherical(ax)
                 [X,Y,Z] = sphere(ax,100); 
                 %C = load('borderdata.mat');
@@ -2108,7 +2079,7 @@ function main()
                     'EdgeColor','none');
                 hold on
             end
-            
+
             function lon_lines=draw_lon_lines(ax)
                 lonspacing = 20; 
                 dtheta=w_e_deg*t*pi/180;
@@ -2116,7 +2087,7 @@ function main()
                 [x1,y1,z1] = sph2cart(lon1*pi/180+dtheta,lat1*pi/180,1); 
                 lon_lines=plot3(ax,x1,y1,z1,'-','color',0.5*[1 1 1]);
                 hold on
-                
+
             end
 
             function lat_lines=draw_lat_lines(ax)
@@ -2126,16 +2097,16 @@ function main()
                 lat_lines=plot3(ax,x2,y2,z2,'-','color',0.5*[1 1 1]);
                 hold on 
             end
-            
+
             rotate(earth,[0 0 1], w_e_deg*dt);
-                
+
             %Draw ECEF frame
-            %[arrows2,lines2]=drawframe([0;0;0],Rzyx(0,0,-pi/180*w_e_deg*t),general.anim_arrow_len, general.anim_line_len);
-            lines2=drawframe(gui_.ax_anim,[0;0;0],Rzyx(0,0,-pi/180*w_e_deg*t), general.anim_line_len);
-            
+            %[arrows2,lines2]=DrawFrame([0;0;0],Rzyx(0,0,-pi/180*w_e_deg*t),general.anim_arrow_len, general.anim_line_len);
+            lines2=DrawFrame(gui_.ax_anim,[0;0;0],Rzyx(0,0,-pi/180*w_e_deg*t), general.anim_line_len);
+
             %translate_planisphere=imtranslate(planisphere,[w_e_deg*t*50, 0],'OutputView','full');
             %imagesc(gui.ax_gndtrk,[0 360], [-90 90], translate_planisphere);
-            
+
             %% Draw bases
             bases_plt=[];
             bas=data.bases.values;
@@ -2143,7 +2114,7 @@ function main()
                 [plt,txt]=draw_base(gui_.ax_anim,bas{i},t);
                 bases_plt=[bases_plt plt txt];
             end
-            
+
             function [plt,txt]=draw_base(ax,base,t)
                 name=base.name;
                 [x,y,z]=base_position(base,t,0,w_e_deg);
@@ -2153,7 +2124,7 @@ function main()
                 txt=text(ax,x,y,z,name);
                 hold on
             end
-            
+
             %Gather next data
             old_pos=pos;
             pos=poss(:,anim_step);
@@ -2162,9 +2133,9 @@ function main()
 
             %Display new elements
             spacecraft=draw_spacecraft(gui_.ax_anim,S);
-            %[arrows,lines]=drawframe(pos, Rib, general.anim_arrow_len, general.anim_line_len);
-            lines=drawframe(gui_.ax_anim,pos, Rib, general.anim_line_len);
-            
+            %[arrows,lines]=DrawFrame(pos, Rib, general.anim_arrow_len, general.anim_line_len);
+            lines=DrawFrame(gui_.ax_anim,pos, Rib, general.anim_line_len);
+
             function plt = draw_spacecraft(ax,S)
                 plt=plot3(ax,S(:,1),S(:,2),S(:,3),'b');
                 hold on
@@ -2184,19 +2155,80 @@ function main()
             last_anim_step = anim_step;
             anim_step = anim_step+general.anim_animation_speed;
         end
+      
+    end
+    function PlotGroundTrack()
+        orbit=data.orbit;
+        t_orb=orbit.t_orb;
+        n_step_orb=length(t_orb);
+        phi_orb=orbit.phi_orb;
+        theta_orb=orbit.theta_orb;
+        c=data.constants;
+        w_e_deg=c.w_e_deg;
         
-        function lines = drawframe(ax,center, R, line_len)
-            ux=center + line_len*R'*[1;0;0];
-            uy=center + line_len*R'*[0;1;0];
-            uz=center + line_len*R'*[0;0;1];
-            pltx=plot3(ax,[center(1), ux(1)],[center(2), ux(2)],[center(3), ux(3)],'r');
-            hold on
-            plty=plot3(ax,[center(1), uy(1)],[center(2), uy(2)],[center(3), uy(3)],'g');
-            hold on
-            pltz=plot3(ax,[center(1), uz(1)],[center(2), uz(2)],[center(3), uz(3)],'b');
-            hold on
-            lines=[pltx plty pltz];
+        %% Ground track plot
+        axes(gui.ax_gndtrk);
+        sat_lats = zeros(n_step_orb,1);
+        sat_lons = zeros(n_step_orb,1);
+        for j=1:n_step_orb
+            sat_lats(j)=180/pi*(pi/2-theta_orb(1,j));
+            sat_lons(j)=180/pi*phi_orb(1,j)-w_e_deg*t_orb(j);
         end
+        geoplot(gui.ax_gndtrk,sat_lats,sat_lons,'r-','LineWidth',1)
+        hold on
+        geobasemap streets
+        hold on
+        geolimits(gui.ax_gndtrk,[-90 90],[-180 180])
+        hold on
+
+        bas=data.bases.values;
+        n_bas=length(bas);
+        bas_names = strings(n_bas,1);
+        bas_lats = zeros(n_bas,1);
+        bas_lons = zeros(n_bas,1);
+        for j=1:n_bas
+            b=bas{j};
+            bas_lons(j,1)=b.lon*180/pi;
+            bas_lats(j,1)=b.lat*180/pi;
+            bas_names(j,1)=b.name;
+        end
+        geoplot(gui.ax_gndtrk,bas_lats,bas_lons,'r.','MarkerSize',8);
+        hold on
+        text(gui.ax_gndtrk,bas_lats,bas_lons,bas_names)
+        hold on
+    end
+    function PlotEulerAnglesOrbitalToBody() 
+        anim=data.anim;
+        t_anim=anim.t_anim;
+        
+        %% Orbital to body Euler angles plot
+        axes(gui.ax_eulang);
+        plot(gui.ax_eulang,...
+            t_anim,anim.phi_ob,...
+            t_anim,anim.theta_ob,...
+            t_anim,anim.psi_ob);
+        hold on
+        title('Euler angles between orbital and body frames');
+        xlabel(gui.ax_eulang,'Time (s)');
+        ylabel(gui.ax_eulang,'Angle (°)');
+        %legend(gui.ax_eulang,'phi','theta','psi','Box','off');
+        hold on 
+    end
+    function PauseTimer()
+        if isfield(gui,'timer') && ~isempty(gui.timer)
+            stop(gui.timer);
+            gui.timer = [];
+        end
+    end
+    function StopTimer()
+        gui.btn_startstop.Selected='on';
+        set(gui.btn_startstop, 'String', 'Restart');
+        gui.btn_pauseresume.Enable='off';
+        set(gui.btn_pauseresume, 'String', 'Pause');
+        if isfield(gui,'video')
+            close(gui.video);
+        end
+        PauseTimer();
     end
 end
 
