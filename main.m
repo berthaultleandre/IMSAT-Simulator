@@ -506,8 +506,24 @@ function main()
             gui.btn_pauseresume.Enable='off';
             gui.btn_startstop=new_button(gui.layout4112,'Start');
             gui.btn_startstop.Enable='off';
+            gui.btn_changedirection=new_button(gui.layout4112,'Normal');
+            gui.btn_changedirection.Enable='off';
             
-            set(gui.layout411,'Heights',[-1 25]);
+            gui.layout4113 = uix.HBox('Parent',gui.layout411,'Spacing',3);
+            max=16;
+            min=0.5;
+            step=1;
+            value=1;
+            dx=step/(max-min);
+            data.anim.speed_factor=1;
+            data.anim.direction=1;
+            gui.txt_animspeed1=new_text(gui.layout4113,'Speed: ');
+            gui.txt_animspeed2=new_text(gui.layout4113,'1');
+            gui.sld_animspeed=new_slider(gui.layout4113,min,max,value,[dx,dx]);
+            
+            set(gui.layout4113,'Widths',[50 25 100]);
+            
+            set(gui.layout411,'Heights',[-1 25 25]);
             
             gui.layout412 = uix.VBox('Parent', gui.layout41, 'Spacing', 3);
 
@@ -611,9 +627,13 @@ function main()
 
             %% Tab 4
             gui.btn_pauseresume.Callback=...
-                {@OnPressed_PauseResumeAnimationButton};
+                @OnPressed_PauseResumeAnimationButton;
             gui.btn_startstop.Callback=...
-                {@OnPressed_StartStopAnimationButton};
+                @OnPressed_StartStopAnimationButton;
+            gui.btn_changedirection.Callback=...
+                @OnPressed_AnimationDirectionButton;
+            gui.sld_animspeed.Callback=...
+                @OnChangedValue_AnimationSpeedSlider;
         end
     end
 
@@ -881,13 +901,27 @@ function main()
         if strcmpi(get(src, 'String'),'Start') || strcmpi(get(src, 'String'),'Restart')
             set(src, 'String', 'Stop');
             gui.btn_pauseresume.Enable='on';
+            gui.btn_changedirection.Enable='on';
             set(gui.btn_pauseresume, 'String', 'Pause');
             StartAnimation(false);
         else
             set(src, 'String', 'Restart');
             StopTimer();
+            gui.btn_changedirection.Enable='off';
             set(gui.btn_pauseresume,'Enable','off'); 
             set(gui.btn_pauseresume, 'String', 'Pause');
+        end
+    end
+    function OnChangedValue_AnimationSpeedSlider(~,~)
+        gui.txt_animspeed2.String=num2str(gui.sld_animspeed.Value);
+        data.anim.speed_factor=gui.sld_animspeed.Value;
+    end
+    function OnPressed_AnimationDirectionButton(src,~)
+        data.anim.direction=-data.anim.direction;
+        if strcmpi(get(src, 'String'),'Normal')
+            set(src, 'String', 'Reverse');
+        else
+            set(src, 'String', 'Normal');
         end
     end
 
@@ -1863,13 +1897,13 @@ function main()
         t_sim=Rob_data.Time;
         n_step_sim=length(t_sim); %number of samples from Simulink
         
-        poss=zeros(3,n_step_sim); %spacecraft position (Simulink samples)
         Ribs=zeros(3,3*n_step_sim); %rotation matrix inertial to body (Simulink samples)
         Ss=zeros(16,3*n_step_sim); %spacecrafts (Simulink samples)
         
         step=1;
         t_anim=0:dt_anim:sim_time;
         n_step_anim=length(t_anim);
+        poss=zeros(3,n_step_anim); %spacecraft position (Simulink samples)
         phi_ob = zeros(n_step_anim,1);
         theta_ob = zeros(n_step_anim,1);
         psi_ob = zeros(n_step_anim,1);
@@ -1911,7 +1945,6 @@ function main()
             open(video)
         end
         
-        data.anim=struct();
         data.anim.Ss=Ss;
         data.anim.poss=poss;
         data.anim.Ribs=Ribs;
@@ -1922,6 +1955,7 @@ function main()
         
         gui.btn_pauseresume.Enable='off';
         gui.btn_startstop.Enable='on';
+        gui.btn_changedirection.Enable='off';
         gui.layout4.Visible='on';
         
         InitPlots();
@@ -2026,14 +2060,8 @@ function main()
                 DrawFrame(gui_.ax_anim,[0;0;0],eye(3),general.anim_line_len);
 
                 %Draw orbit line
-                for i=2:n_step_anim
-                    pos_temp=poss(:,i);
-                    old_pos_temp=poss(:,i-1);
-                    plot3(gui_.ax_anim,[old_pos_temp(1), pos_temp(1)],...
-                        [old_pos_temp(2), pos_temp(2)],...
-                        [old_pos_temp(3), pos_temp(3)],'c');
-                    hold on
-                end
+                plot3(gui_.ax_anim,poss(1,:),poss(2,:),poss(3,:),'c');
+                hold on
 
                 %% Axis
                 %Labels
@@ -2141,11 +2169,13 @@ function main()
                 hold on
             end
 
-            v=plot3(gui_.ax_anim,[old_pos(1), pos(1)], ...
-                [old_pos(2), pos(2)], ...
-                [old_pos(3), pos(3)],'m'); %display travelled distance
-            hold on
-            v.LineWidth=2;
+            if data.anim.direction == 1
+                v=plot3(gui_.ax_anim,[old_pos(1), pos(1)], ...
+                    [old_pos(2), pos(2)], ...
+                    [old_pos(3), pos(3)],'m'); %display travelled distance
+                hold on
+                v.LineWidth=2;
+            end
 
             if (general.anim_save_video)
                 frame=getframe(gcf);
@@ -2153,7 +2183,14 @@ function main()
             end
 
             last_anim_step = anim_step;
-            anim_step = anim_step+general.anim_animation_speed;
+            anim_step = anim_step+data.anim.direction*floor(general.anim_animation_speed*data.anim.speed_factor);
+            if anim_step<=0
+                anim_step=2;
+                data.anim.direction=1;
+            end
+            if (anim_step>n_step_anim && last_anim_step<n_step_anim)
+                anim_step=n_step_anim;
+            end
         end
       
     end
@@ -2224,6 +2261,7 @@ function main()
         gui.btn_startstop.Selected='on';
         set(gui.btn_startstop, 'String', 'Restart');
         gui.btn_pauseresume.Enable='off';
+        gui.btn_changedirection.Enable='off';
         set(gui.btn_pauseresume, 'String', 'Pause');
         if isfield(gui,'video')
             close(gui.video);
