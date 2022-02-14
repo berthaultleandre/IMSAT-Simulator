@@ -913,8 +913,10 @@ function main()
         end
     end
     function OnChangedValue_AnimationSpeedSlider(~,~)
-        gui.txt_animspeed2.String=num2str(gui.sld_animspeed.Value);
-        data.anim.speed_factor=gui.sld_animspeed.Value;
+        spd=gui.sld_animspeed.Value;
+        spd=round(spd);
+        gui.txt_animspeed2.String=num2str(spd);
+        data.anim.speed_factor=spd;
     end
     function OnPressed_AnimationDirectionButton(src,~)
         data.anim.direction=-data.anim.direction;

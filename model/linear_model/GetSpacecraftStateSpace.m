@@ -32,7 +32,7 @@ Agh=zeros(3,3);
 
 A = [Aww Awg Awh;Agw Agg Agh;zeros(3,9)];
 
-%Bm=I_inv*skew(b_b_avg)*skew(b_b_avg)/norm(b_b_avg)^2; %- ?
+%Bm=I_inv*skew(b_b_avg)*skew(b_b_avg)/norm(b_b_avg)^2; %?
 Bm=-I_inv*skew(b_b_avg);
 B_wheels=[inv(I);zeros(3);-eye(3)];
 B_magnet=[Bm;zeros(3);zeros(3)];
